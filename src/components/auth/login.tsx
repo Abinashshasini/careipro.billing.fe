@@ -1,5 +1,4 @@
 'use client';
-
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/apiClient';
+import { Loader } from '../ui/loader';
 
 const FormSchema = z.object({
   mobile: z.string().regex(/^[0-9]{10}$/, 'Mobile must be 10 digits'),
@@ -17,13 +17,7 @@ const FormSchema = z.object({
   }),
 });
 
-type AuthFlow = 'login' | 'register';
-
-type LoginProps = {
-  onChangeFlow: (flow: AuthFlow) => void;
-};
-
-export default function Login({ onChangeFlow }: LoginProps) {
+export default function Login() {
   const router = useRouter();
 
   const {
@@ -84,14 +78,29 @@ export default function Login({ onChangeFlow }: LoginProps) {
           error={errors.password?.message}
           {...register('password')}
         />
-        <div className="text-right" onClick={() => onChangeFlow('register')}>
+        {loginMutation.error && (
+          <p className="text-sm text-danger">
+            {(
+              loginMutation.error as {
+                response?: { data?: { message?: string } };
+              }
+            )?.response?.data?.message ||
+              'Something went wrong. Please try again.'}
+          </p>
+        )}
+
+        <div className="text-center" onClick={() => {}}>
           <a href="#" className="text-sm text-gray hover:underline">
-            Don&apos;t have an account? Signup
+            I Agree to T&C&apos;s & Privacy Policy
           </a>
         </div>
 
         <Button type="submit" variant="default" className="w-full mt-4">
-          Get Started
+          {loginMutation.isPending ? (
+            <Loader size={16} className="mr-2 text-white" />
+          ) : (
+            'Get Started'
+          )}
         </Button>
       </form>
     </div>

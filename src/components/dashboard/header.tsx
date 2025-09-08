@@ -31,10 +31,10 @@ const Header = ({ onMenuClick }: HeaderProps) => {
       {/* Desktop actions */}
       <div className="hidden lg:flex ml-auto items-center gap-4 text-sm font-medium text-gray-600">
         <button className="px-3 py-2 rounded-md text-white hover:text-gray-400">
-          Purchases
+          Stocks
         </button>
         <button className="px-3 py-2 rounded-md text-white hover:text-gray-400">
-          Stock
+          Purchases
         </button>
         <button className="px-3 py-2 rounded-md text-white hover:text-gray-400">
           Sells

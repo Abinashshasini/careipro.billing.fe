@@ -43,27 +43,27 @@ export default function AppSidebar({ isOpen, onClose }: SidebarProps) {
           <SidebarItem
             icon={AiFillMedicineBox}
             label="Stocks"
-            active={pathname.startsWith('/dashboard/stock')}
+            active={pathname.startsWith('/dashboard/stocks')}
             onClick={() => {
-              router.push('/dashboard/stock');
+              router.push('/dashboard/stocks');
               onClose();
             }}
           />
           <SidebarItem
             icon={FaCartArrowDown}
             label="Purchases"
-            active={pathname.startsWith('/dashboard/purchase')}
+            active={pathname.startsWith('/dashboard/purchases')}
             onClick={() => {
-              router.push('/dashboard/purchase');
+              router.push('/dashboard/purchases');
               onClose();
             }}
           />
           <SidebarItem
             icon={BiSolidBarChartSquare}
             label="Sells"
-            active={pathname.startsWith('/dashboard/sell')}
+            active={pathname.startsWith('/dashboard/sells')}
             onClick={() => {
-              router.push('/dashboard/sell');
+              router.push('/dashboard/sells');
               onClose();
             }}
           />

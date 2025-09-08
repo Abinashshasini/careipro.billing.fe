@@ -4,10 +4,21 @@
   --color-primary: #4898b2;
   --color-primary-light: #9be6ff;
   --color-bg-primary: #F7F4EA;
+  --color-bg-secondary: #fafafa;
   --color-white: #fff;
   --color-danger: #F08787;
   --color-success: #8AA624;
   --color-black: #111;
   --color-gray: #717171;
   --color-border: #D7D7D7;
+  --color-input-border: #dadada;
+  --color-input-boxshadow: inset 3px 3px 4px 1px rgba(0, 0, 0, .04);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-black);
+  margin: 0;
+  padding: 0;
 }
