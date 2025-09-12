@@ -6,7 +6,7 @@ interface DistributorOrInvoiceListProps {
   date: string;
   seleceted: boolean;
   amount?: number | string;
-  onClick?: (id: number) => void;
+  onClick?: () => void;
 }
 
 const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
@@ -14,12 +14,11 @@ const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
   date = '',
   amount = '',
   seleceted,
-  distributorId,
   onClick = () => {},
 }) => {
   return (
     <div
-      onClick={() => onClick(distributorId)}
+      onClick={onClick}
       className={`flex items-center justify-between px-4 py-4 border-b border-border cursor-pointer hover:bg-grayLight transition border-l-4 border-l-primary hover:bg-shade-blue ${
         seleceted ? 'bg-shade-blue' : ''
       }`}
@@ -28,7 +27,9 @@ const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
         <h3 className="text-sm font-semibold mb-1">{title}</h3>
         <p className="text-sm text-gray">{date}</p>
       </div>
-      <div className="font-bold text-danger">₹{amount}</div>
+      <div className="font-semibold text-danger">
+        {amount ? `₹${amount}` : ''}
+      </div>
     </div>
   );
 };
