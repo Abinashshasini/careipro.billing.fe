@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DistributorShimmer } from '@/components/shimmers/distributor-shimmer';
 import DistributorOrInvoiceList from './distributor-or-invoice-list';
 import { NoData } from '@/components/ui/no-data';
+import AddDistributorModal from './add-distributors';
 
 type SuppliersListProps = {
   data: TSupplier[];
@@ -26,7 +27,9 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   selectedDistributorId,
   setSelectedDistributorId,
 }) => {
+  /** Required states and  */
   const [query, setQuery] = useState('');
+  const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
 
   /** API call */
   const fetchData = async (): Promise<TSupplier[]> => {
@@ -58,7 +61,10 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
             <p className="text-gray text-md">View or Edit Purchases</p>
           </div>
         </div>
-        <div className="flex items-center px-4 py-2 bg-primary text-white rounded-lg cursor-pointer hover:opacity-90 transition">
+        <div
+          className="flex items-center px-4 py-2 bg-primary text-white rounded-lg cursor-pointer hover:opacity-90 transition"
+          onClick={() => setOpenAddDistributorModal(true)}
+        >
           <FaRegAddressBook className="mr-2" />
           Add Distributors
         </div>
@@ -150,6 +156,12 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Add distributor modal  */}
+        <AddDistributorModal
+          isOpen={openAddDistributorModal}
+          onClose={() => setOpenAddDistributorModal(false)}
+        />
       </div>
     </>
   );

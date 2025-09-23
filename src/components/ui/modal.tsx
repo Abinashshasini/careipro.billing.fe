@@ -44,18 +44,18 @@ export function Modal({
     >
       <div
         className={cn(
-          'bg-white rounded-2xl shadow-lg w-full max-w-lg p-6 transform transition-transform duration-200',
+          'bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 transform transition-transform duration-200',
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
           className,
         )}
         onClick={(e) => e.stopPropagation()} // 👈 prevent closing when clicking inside
       >
         {/* Header */}
-        <div className="flex justify-between items-center border-b pb-3 mb-4">
+        <div className="flex justify-between items-center border-b pb-3 mb-8 border-border">
           {title && <h2 className="text-lg font-semibold">{title}</h2>}
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-black-500 hover:text-gray-700"
           >
             <IoCloseSharp size={20} />
           </button>
