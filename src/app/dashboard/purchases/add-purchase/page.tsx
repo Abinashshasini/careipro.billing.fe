@@ -21,6 +21,7 @@ import { Select } from '@/components/ui/select';
 import { useQueryClient } from '@tanstack/react-query';
 import { TSupplier } from '@/types/purchases';
 import { BehaviourProvidorDiv } from '@/components/ui/behaviour-providor-div';
+import AddMedicineWrapper from '../component/add-medicine-wrapper';
 
 const AddPurchaseOrder = () => {
   const router = useRouter();
@@ -66,7 +67,7 @@ const AddPurchaseOrder = () => {
       </div>
 
       {/* Default options */}
-      <div className="w-full light-border rounded-lg flex items-start p-4 gap-8">
+      <div className="w-full light-border rounded-lg flex items-start p-4 gap-8 mb-6">
         <div>
           <p className="whitespace-nowrap mb-2 text-xs font-regular text-black relative">
             SELECT DISTRIBUTOR
@@ -115,7 +116,7 @@ const AddPurchaseOrder = () => {
             INVOICE DATE
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center">
+          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center w-64">
             <DatePicker
               showIcon
               dateFormat="dd-MM-yyyy"
@@ -133,7 +134,7 @@ const AddPurchaseOrder = () => {
             PAYMENT DATE
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center">
+          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center w-64">
             <DatePicker
               showIcon
               dateFormat="dd-MM-yyyy"
@@ -146,6 +147,9 @@ const AddPurchaseOrder = () => {
           </BehaviourProvidorDiv>
         </div>
       </div>
+
+      {/* Add Medicine component */}
+      <AddMedicineWrapper />
     </div>
   );
 };

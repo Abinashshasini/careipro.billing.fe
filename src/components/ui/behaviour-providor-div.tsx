@@ -41,12 +41,13 @@ export const BehaviourProvidorDiv: React.FC<BehaviourProvidorDivProps> = ({
       ref={ref}
       onClick={handleFocus}
       className={cn(
-        'rounded-md border bg-bgLight transition-all duration-150 h-10',
+        'border bg-bgLight transition-all duration-150 h-10',
         focused ? 'border-primary ring-1  ring-primary' : 'border-input-border',
         error && 'border-danger ring-1 ring-danger',
         disabled && 'cursor-not-allowed opacity-50',
         className,
       )}
+      style={{ boxShadow: 'inset 3px 3px 4px 1px rgba(0, 0, 0, 0.04)' }}
     >
       {children}
     </div>

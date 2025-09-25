@@ -1,0 +1,54 @@
+.initial {
+    min-width: 34px;
+    max-width: 32px;
+    margin-right: 0;
+}
+
+.productName {
+    min-width: 200px;
+    margin-right: 5px;
+    position: relative;
+}
+
+.hsn {
+    min-width: 100px;
+    margin-right: 3px;
+}
+
+
+.batch {
+    min-width: 130px;
+    margin-right: 10px;
+    position: relative;
+}
+
+.expiry,
+.pack,
+.qty,
+.free,
+.mrp,
+.rate {
+    min-width: 65px;
+    margin-right: 3px;
+}
+
+.rate {
+    margin-right: 10px;
+}
+
+.sch,
+.disc {
+    min-width: 55px;
+    margin-right: 3px;
+}
+
+.disc {
+    margin-right: 10px;
+}
+
+.gst,
+.margin,
+.amount {
+    min-width: 75px;
+    margin-right: 3px;
+}
