@@ -1,8 +1,8 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Button } from '@/components/ui/button';
 
 interface DateRangeFilterProps {
   isOpen: boolean;
@@ -18,6 +18,29 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   const [range, setRange] = useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = range;
   const ref = useRef<HTMLDivElement | null>(null);
+
+  /** Add outside-click (mousedown/touchstart capture) and Escape key handling */
+  const handleOutside = (e: MouseEvent | TouchEvent) => {
+    const target = e.target as Node;
+    if (ref.current && !ref.current.contains(target)) {
+      onClose();
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener('mousedown', handleOutside, true);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutside, true);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -43,37 +66,35 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           selectsRange
           inline
         />
-      </div>
 
-      <div className="flex justify-between mt-3">
-        <Button
-          type="submit"
-          variant="secondary"
-          className="font-semibold"
-          onClick={() => {
-            setRange([null, null]);
-          }}
-        >
-          Clear
-        </Button>
+        <div className="flex gap-2 mt-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setRange([null, null])}
+            className="px-3 py-1"
+          >
+            Clear
+          </Button>
 
-        <Button
-          type="submit"
-          variant="default"
-          className="font-semibold"
-          onClick={() => {
-            if (startDate && !endDate) {
-              onApply(startDate, startDate);
-            } else if (startDate && endDate) {
-              onApply(startDate, endDate);
-            } else {
-              onApply(null, null);
-            }
-            onClose();
-          }}
-        >
-          Apply
-        </Button>
+          <Button
+            type="button"
+            variant="default"
+            className="px-3 py-1 ml-auto"
+            onClick={() => {
+              if (startDate && !endDate) {
+                onApply(startDate, startDate);
+              } else if (startDate && endDate) {
+                onApply(startDate, endDate);
+              } else {
+                onApply(null, null);
+              }
+              onClose();
+            }}
+          >
+            Apply
+          </Button>
+        </div>
       </div>
     </div>
   );

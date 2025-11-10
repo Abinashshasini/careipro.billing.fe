@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DistributorShimmer } from '@/components/shimmers/distributor-shimmer';
 import DistributorOrInvoiceList from './distributor-or-invoice-list';
 import DateRangeFilter from './date-range-filter';
+import SortFilter, { SortOption } from './sort-filter';
 import AddDistributorModal from './add-distributors';
 
 type SuppliersListProps = {
@@ -30,6 +31,8 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   const [query, setQuery] = useState('');
   const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
+  const [showSortFilter, setShowSortFilter] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<SortOption | null>(null);
 
   /** API call */
   const fetchData = async (): Promise<TSupplier[]> => {
@@ -127,8 +130,19 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
             onApply={handleSearchByDate}
           />
         </div>
-        <div className="border border-border rounded-lg p-2 hover:bg-grayLight transition bg-bg-secondary">
-          <TbSortAscending size={23} className="text-black cursor-pointer" />
+        <div className="relative">
+          <div
+            className="border border-border rounded-lg p-2 hover:bg-grayLight transition bg-bg-secondary"
+            onClick={() => setShowSortFilter((s) => !s)}
+          >
+            <TbSortAscending size={23} className="text-black cursor-pointer" />
+          </div>
+          <SortFilter
+            isOpen={showSortFilter}
+            selected={selectedSort}
+            onClose={() => setShowSortFilter(false)}
+            onSelect={(opt) => setSelectedSort(opt)}
+          />
         </div>
       </div>
 
@@ -157,7 +171,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
                 key={element.supplier_id}
                 title={`${element.supplier_name} | (${element.gst_number})`}
                 date={`Last Txn: ${element.last_invoice_date || 'NA'}`}
-                amount={element.last_invoice_amount || 0}
+                amount={Number(element.last_invoice_amount) || 0}
                 distributorId={element.supplier_id}
                 seleceted={selectedDistributorId === element.supplier_id}
                 onClick={() => setSelectedDistributorId(element.supplier_id)}
