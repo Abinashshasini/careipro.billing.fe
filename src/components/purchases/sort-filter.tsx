@@ -65,7 +65,7 @@ const SortFilter: React.FC<SortFilterProps> = ({
   return (
     <div
       ref={ref}
-      className="absolute z-50 mt-2 right-0 bg-white border border-border rounded shadow-lg p-3 w-56 text-sm"
+      className="absolute z-50 mt-2 right-0 bg-white border border-border rounded shadow-lg p-3 w-56 text-sm font-medium"
     >
       <div className="flex flex-col">
         {options.map((opt) => (

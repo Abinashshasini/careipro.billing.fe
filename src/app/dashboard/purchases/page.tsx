@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 
 /** components */
-import InvoiceDetailsWrapper from './component/invoice-details-wrapper';
-import DistibutorListWraper from './component/distributor-list-wraper';
+import InvoiceDetailsWrapper from '@/components/purchases/invoice-details-wrapper';
+import DistibutorListWraper from '@/components/purchases/distributor-list-wraper';
 
 const PurchaseContainer = () => {
   const [selectedDistributorId, setSelectedDistributorId] = useState<

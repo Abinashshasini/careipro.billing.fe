@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/tooltip';
 import { TMedicine, TMedicineFormData } from '@/types/medicine';
 import { getFieldError, isRowComplete } from '@/lib/medicineValidation';
-import '../styles/add-purchase-row.css';
+import './styles/add-purchase-row.css';
 
 const GST_RATE = 0.05;
 
