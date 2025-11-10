@@ -23,11 +23,11 @@ const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
         seleceted ? 'bg-shade-blue' : ''
       }`}
     >
-      <div>
-        <h3 className="text-sm font-semibold mb-1">{title}</h3>
-        <p className="text-sm text-gray">{date}</p>
+      <div className="min-w-0">
+        <h3 className="text-sm font-semibold mb-1 truncate">{title}</h3>
+        <p className="text-sm text-gray truncate">{date}</p>
       </div>
-      <div className="font-semibold text-danger">
+      <div className="font-semibold text-red-500 ml-4 flex-shrink-0">
         {amount ? `₹${amount}` : ''}
       </div>
     </div>

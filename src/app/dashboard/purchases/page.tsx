@@ -13,7 +13,7 @@ const PurchaseContainer = () => {
   return (
     <div className="w-full bg-white rounded-lg h-full flex">
       {/* Sidebar (Distributor & Invoice List) */}
-      <div className="w-md border-r-1 h-full border-border relative overflow-hidden">
+      <div className="w-md border-r-1 h-full border-border relative">
         <DistibutorListWraper
           selectedDistributorId={selectedDistributorId}
           setSelectedDistributorId={setSelectedDistributorId}
@@ -21,7 +21,7 @@ const PurchaseContainer = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="h-full flex-1 p-4">
+      <div className="h-full flex-1">
         <InvoiceDetailsWrapper />
       </div>
     </div>

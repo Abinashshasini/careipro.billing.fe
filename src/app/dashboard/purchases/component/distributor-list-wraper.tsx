@@ -3,7 +3,6 @@ import { IoMdSearch } from 'react-icons/io';
 import { LuCalendarArrowUp } from 'react-icons/lu';
 import { FaRegAddressBook } from 'react-icons/fa';
 import { TbSortAscending } from 'react-icons/tb';
-import { IoChevronBackOutline } from 'react-icons/io5';
 
 import { SearchBar } from '@/components/ui/searchbar';
 import apiClient from '@/lib/apiClient';
@@ -11,7 +10,7 @@ import { TSupplier } from '@/types/purchases';
 import { useQuery } from '@tanstack/react-query';
 import { DistributorShimmer } from '@/components/shimmers/distributor-shimmer';
 import DistributorOrInvoiceList from './distributor-or-invoice-list';
-import { NoData } from '@/components/ui/no-data';
+import DateRangeFilter from './date-range-filter';
 import AddDistributorModal from './add-distributors';
 
 type SuppliersListProps = {
@@ -30,6 +29,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   /** Required states and  */
   const [query, setQuery] = useState('');
   const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
+  const [showDateFilter, setShowDateFilter] = useState(false);
 
   /** API call */
   const fetchData = async (): Promise<TSupplier[]> => {
@@ -45,12 +45,44 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  /** Search filter */
-  const filteredData = data?.filter(
-    (supplier) =>
+  /** Search + Date range filter */
+  const filteredData = data?.filter((supplier) => {
+    const matchesText =
       supplier.supplier_name.toLowerCase().includes(query.toLowerCase()) ||
-      supplier.gst_number.toLowerCase().includes(query.toLowerCase()),
-  );
+      supplier.gst_number.toLowerCase().includes(query.toLowerCase());
+
+    // If query contains a date or date range 'YYYY-MM-DD' or 'YYYY-MM-DD|YYYY-MM-DD', respect that
+    if (query.includes('|')) {
+      const [fromStr, toStr] = query.split('|');
+      const from = new Date(fromStr);
+      const to = new Date(toStr);
+      const invoiceDate = supplier.last_invoice_date
+        ? new Date(supplier.last_invoice_date)
+        : null;
+      if (!invoiceDate) return false;
+      return invoiceDate >= from && invoiceDate <= to;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(query)) {
+      // exact date search
+      return supplier.last_invoice_date === query || matchesText;
+    }
+
+    return matchesText;
+  });
+
+  /** Function to handle search by date */
+  const handleSearchByDate = (from: Date | null, to: Date | null) => {
+    if (from && to && from.getTime() === to.getTime()) {
+      setQuery(from.toISOString().split('T')[0]);
+    } else if (from && to) {
+      setQuery(
+        `${from.toISOString().split('T')[0]}|${to.toISOString().split('T')[0]}`,
+      );
+    } else {
+      setQuery('');
+    }
+  };
   return (
     <>
       {/* Header */}
@@ -79,8 +111,21 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
           className="text-semibold"
           icon={<IoMdSearch size={20} className="text-black" />}
         />
-        <div className="border border-border rounded-lg p-2 hover:bg-grayLight transition bg-bg-secondary">
-          <LuCalendarArrowUp size={23} className="text-black cursor-pointer" />
+        <div className="relative">
+          <div
+            className="border border-border rounded-lg p-2 hover:bg-grayLight transition bg-bg-secondary"
+            onClick={() => setShowDateFilter((prev) => !prev)}
+          >
+            <LuCalendarArrowUp
+              size={23}
+              className="text-black cursor-pointer"
+            />
+          </div>
+          <DateRangeFilter
+            isOpen={showDateFilter}
+            onClose={() => setShowDateFilter(false)}
+            onApply={handleSearchByDate}
+          />
         </div>
         <div className="border border-border rounded-lg p-2 hover:bg-grayLight transition bg-bg-secondary">
           <TbSortAscending size={23} className="text-black cursor-pointer" />
@@ -90,28 +135,14 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
       {/* Info Banner */}
       <div>
         <h3 className="font-medium text-sm px-4 py-2 pl-4 border-b border-border bg-shade-yellow">
-          {selectedDistributorId ? (
-            <>
-              Select an invoice to get&nbsp;
-              <span className="underline font-semibold">Purchase Details</span>
-            </>
-          ) : (
-            <>
-              Select a distributor to view their&nbsp;
-              <span className="underline font-semibold">Invoices</span>
-            </>
-          )}
+          Select an invoice to get&nbsp;
+          <span className="underline font-semibold">Invoice Lists</span>
         </h3>
       </div>
 
-      {/* Animated Lists */}
       <div className="relative w-full h-[calc(100%-140px)] overflow-hidden">
         {/* Distributor List */}
-        <div
-          className={`absolute top-0 left-0 w-full h-full transition-transform duration-300 ${
-            selectedDistributorId ? '-translate-x-full' : 'translate-x-0'
-          }`}
-        >
+        <div className="w-full h-full ">
           {isLoading ? (
             <>
               {Array(7)
@@ -133,28 +164,49 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               />
             ))
           ) : (
-            <NoData message="No suppliers available" />
+            <>
+              <DistributorOrInvoiceList
+                title="MedPlus Healthcare Solutions | (29AABCT1332L1ZW)"
+                date="Last Txn: 2024-11-01"
+                amount={125000}
+                distributorId={1}
+                seleceted={selectedDistributorId === 1}
+                onClick={() => setSelectedDistributorId(1)}
+              />
+              <DistributorOrInvoiceList
+                title="Apollo Pharmacy Distributors | (27AABCA3842M1Z5)"
+                date="Last Txn: 2024-10-28"
+                amount={87500}
+                distributorId={2}
+                seleceted={selectedDistributorId === 2}
+                onClick={() => setSelectedDistributorId(2)}
+              />
+              <DistributorOrInvoiceList
+                title="Wellness Forever Medical | (24AACFW3421N1ZQ)"
+                date="Last Txn: 2024-10-25"
+                amount={95250}
+                distributorId={3}
+                seleceted={selectedDistributorId === 3}
+                onClick={() => setSelectedDistributorId(3)}
+              />
+              <DistributorOrInvoiceList
+                title="HealthKart Pharmaceuticals | (07AABCH9645P1Z2)"
+                date="Last Txn: 2024-10-20"
+                amount={156800}
+                distributorId={4}
+                seleceted={selectedDistributorId === 4}
+                onClick={() => setSelectedDistributorId(4)}
+              />
+              <DistributorOrInvoiceList
+                title="Guardian Medical Distribution | (33AACFG7890R1ZK)"
+                date="Last Txn: 2024-10-15"
+                amount={72300}
+                distributorId={5}
+                seleceted={selectedDistributorId === 5}
+                onClick={() => setSelectedDistributorId(5)}
+              />
+            </>
           )}
-        </div>
-
-        {/* Invoice List */}
-        <div
-          className={`absolute top-0 left-0 w-full h-full transition-transform duration-300 ${
-            selectedDistributorId ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="p-4 flex items-center gap-2">
-            <IoChevronBackOutline
-              size={20}
-              onClick={() => setSelectedDistributorId(null)}
-              className="cursor-pointer"
-            />
-            <div>
-              <h3 className="text-md font-regular text-gray">
-                Showing Invoices for this distributor
-              </h3>
-            </div>
-          </div>
         </div>
 
         {/* Add distributor modal  */}

@@ -1,23 +1,74 @@
+/* Common input styling */
+.medicine-input {
+    height: 100%;
+    outline: none;
+    padding-left: 0.5rem;
+    font-size: 0.875rem;
+    color: #000;
+    font-weight: 400;
+    width: 100%;
+    transition: all 0.15s;
+    background: transparent;
+}
+
+.medicine-input:focus {
+    border-color: var(--color-primary);
+}
+
+.medicine-input.error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.medicine-input.borderless {
+    border: none;
+}
+
+/* Remove number input spinners */
+.medicine-input[type="number"]::-webkit-outer-spin-button,
+.medicine-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.medicine-input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .initial {
     min-width: 34px;
     max-width: 32px;
     margin-right: 0;
 }
 
+.input-styles {
+    height: 40px;
+    background: #fff;
+    border: 1px solid hsla(0, 0%, 62%, .3);
+    box-shadow: inset 3px 3px 4px 1px rgba(0, 0, 0, .04);
+}
+
 .productName {
     min-width: 200px;
+    max-width: 200px;
     margin-right: 5px;
     position: relative;
+    transition: all 0.15s;
 }
 
 .hsn {
     min-width: 100px;
+    max-width: 100px;
     margin-right: 3px;
+    position: relative;
+
 }
 
 
 .batch {
     min-width: 130px;
+    max-width: 130px;
     margin-right: 10px;
     position: relative;
 }
@@ -29,7 +80,15 @@
 .mrp,
 .rate {
     min-width: 65px;
+    max-width: 65px;
     margin-right: 3px;
+    position: relative;
+}
+
+
+
+.expiry>input {
+    padding: 0px;
 }
 
 .rate {
@@ -37,18 +96,87 @@
 }
 
 .sch,
-.disc {
+.disc,
+.gst {
     min-width: 55px;
+    max-width: 55px;
     margin-right: 3px;
+    position: relative;
 }
 
 .disc {
     margin-right: 10px;
 }
 
-.gst,
+
 .margin,
 .amount {
     min-width: 75px;
-    margin-right: 3px;
+    max-width: 75px;
+    margin-right: 5px;
+}
+
+.amount {
+    margin-right: 10px;
+}
+
+.select {
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+/* Validation error styles */
+.validation-error {
+    border: 1px solid #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.error-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 50;
+    background-color: #1f2937;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus styles for better keyboard navigation */
+.productName:focus-within,
+.hsn:focus-within,
+.batch:focus-within,
+.qty:focus-within {
+    border: 1px solid var(--color-primary) !important;
+    background-color: #f0f9ff;
+}
+
+.expiry:focus-within,
+.pack:focus-within,
+.free:focus-within,
+.mrp:focus-within,
+.rate:focus-within,
+.sch:focus-within,
+.disc:focus-within,
+.gst:focus-within {
+    border: 1px solid var(--color-primary) !important;
+    background-color: #f0f9ff;
+}
+
+/* Enhanced focus styles for input elements */
+input:focus {
+    outline: none !important;
+}
+
+.keyboard-hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
 }
