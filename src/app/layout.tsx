@@ -4,11 +4,13 @@ import ReactQueryProvider from '@/lib/reactQueryProvider';
 import './globals.css';
 
 const geistSans = Geist({
+  weight: ['400', '500', '600'],
   variable: '--font-geist-sans',
   subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
+  weight: ['400', '500', '600'],
   variable: '--font-geist-mono',
   subsets: ['latin'],
 });

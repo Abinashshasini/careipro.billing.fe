@@ -20,7 +20,8 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  /* Use Geist (injected via next/font) variable if available, otherwise fallback to common system fonts */
+  font-family: var(--font-geist-sans, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial);
   background-color: var(--color-bg-primary);
   color: var(--color-black);
   margin: 0;
