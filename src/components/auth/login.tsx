@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/apiClient';
 import { Loader } from '../ui/loader';
+import { authClient } from '@/utils/auth';
 
 const FormSchema = z.object({
   mobile: z.string().regex(/^[0-9]{10}$/, 'Mobile must be 10 digits'),
@@ -34,10 +35,16 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: { mobile: string; password: string }) => {
-      const { data } = await apiClient.post('/store/login', payload);
-      return data;
+      const { data } = await apiClient.post('/authentication/login', payload);
+      return data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Pass the data structure that setAuthData expects
+      authClient.setAuthData({
+        token: data.token,
+        user: data.user,
+        datastore_key: data.user.database_key,
+      });
       router.push('/dashboard');
     },
   });

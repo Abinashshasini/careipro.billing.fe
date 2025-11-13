@@ -19,6 +19,10 @@
   --color-input-boxshadow: inset 3px 3px 4px 1px rgba(0, 0, 0, .04);
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   /* Use Geist (injected via next/font) variable if available, otherwise fallback to common system fonts */
   font-family: var(--font-geist-sans, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial);
@@ -34,4 +38,71 @@ body {
 
 .light-border-b {
   border-bottom: 1px solid hsla(0, 0%, 62%, .15);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Success Icon Zoom Animation */
+@keyframes zoom-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-zoom-in {
+  animation: zoom-in 0.6s ease-out forwards;
+}
+
+/* React Select Styling */
+.react-select-container .react-select__control {
+  border: 1px solid var(--color-input-border);
+  border-radius: 0.5rem;
+  min-height: 2.5rem;
+  box-shadow: var(--color-input-boxshadow);
+}
+
+.react-select-container .react-select__control:hover {
+  border-color: var(--color-primary);
+}
+
+.react-select-container .react-select__control--is-focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.react-select-container .react-select__option--is-focused {
+  background-color: var(--color-shade-blue);
+}
+
+.react-select-container .react-select__option--is-selected {
+  background-color: var(--color-primary);
+}
+
+.react-select-container .react-select__input-container {
+  padding: 0.125rem 0.5rem;
+}
+
+.react-select-container .react-select__placeholder {
+  color: #9ca3af;
+}
+
+.react-select-container .react-select__single-value {
+  color: #374151;
 }

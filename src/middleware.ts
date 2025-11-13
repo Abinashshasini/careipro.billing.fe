@@ -1,32 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const token = req.cookies.get('auth_token')?.value;
   const url = req.nextUrl.clone();
 
-  let isAuthenticated = false;
-
-  if (token) {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/store/details`,
-        {
-          method: 'GET',
-          headers: {
-            Cookie: `auth_token=${token}`,
-          },
-        },
-      );
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        isAuthenticated = true;
-      }
-    } catch (err) {
-      console.error('Error validating token in middleware:', err);
-    }
-  }
+  // Simple check: if token exists in cookies, user is authenticated
+  const isAuthenticated = Boolean(token);
 
   if (!isAuthenticated) {
     if (url.pathname !== '/') {

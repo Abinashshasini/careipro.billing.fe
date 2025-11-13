@@ -1,20 +1,33 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import Select from 'react-select';
 
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import Success from '@/components/ui/success';
 import apiClient from '@/lib/apiClient';
 
-// ✅ Schema
+type DistributorOption = {
+  value: string;
+  label: string;
+  distributor: DistributorForm;
+};
+
+type SearchDistributorsResponse = {
+  success: boolean;
+  data: {
+    distributors: DistributorForm[];
+  };
+};
+
 const DistributorSchema = z.object({
-  suppliers_name: z.string().min(2, 'Supplier name is required'),
+  distributor_name: z.string().min(2, 'Distributor name is required'),
   state: z.string().min(2, 'State is required'),
   district: z.string().min(2, 'District is required'),
   mobile_number: z
@@ -22,8 +35,12 @@ const DistributorSchema = z.object({
     .regex(/^[0-9]{10}$/, 'Mobile number must be 10 digits'),
   email_id: z.string().email('Invalid email').optional().or(z.literal('')),
   gst_number: z.string().min(5, 'GST Number is required'),
-  drug_licence_number: z.string().optional(),
+  drug_license_number: z.string().min(5, 'Drug Licence Number is required'),
   address: z.string().optional(),
+  opening_balance: z
+    .number()
+    .max(1000000, 'Opening balance cannot exceed 10,00,000')
+    .optional(),
 });
 
 type DistributorForm = z.infer<typeof DistributorSchema>;
@@ -37,79 +54,95 @@ export default function AddDistributorModal({
   isOpen,
   onClose,
 }: AddDistributorModalProps) {
+  const [distributorOptions, setDistributorOptions] = useState<
+    DistributorOption[]
+  >([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    reset,
+    control,
     formState: { errors },
   } = useForm<DistributorForm>({
     resolver: zodResolver(DistributorSchema),
     defaultValues: {
-      suppliers_name: '',
+      distributor_name: '',
       state: '',
       district: '',
       mobile_number: '',
       email_id: '',
       gst_number: '',
-      drug_licence_number: '',
+      drug_license_number: '',
       address: '',
+      opening_balance: undefined,
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedValue, setDebouncedValue] = useState('');
+  // Search distributors function
+  const searchDistributors = async (inputValue: string) => {
+    if (!inputValue || inputValue.length < 2) {
+      setDistributorOptions([]);
+      return;
+    }
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    setIsSearching(true);
+    try {
+      const response = await apiClient.get<SearchDistributorsResponse>(
+        `/billing-dashboard/search-distributors?search=${inputValue}`,
+      );
 
-  const nameValue = watch('suppliers_name');
-  const gstValue = watch('gst_number');
-  const mobileValue = watch('mobile_number');
-
-  useEffect(() => {
-    const term = nameValue || gstValue || mobileValue;
-    if (term) setSearchTerm(term);
-  }, [nameValue, gstValue, mobileValue]);
-
-  // ✅ Fetch supplier if match found
-  useEffect(() => {
-    const fetchSupplier = async () => {
-      if (!debouncedValue) return;
-      try {
-        const res = await apiClient.get(
-          `/suppliers/search?query=${debouncedValue}`,
-        );
-        if (res.data) {
-          const supplier = res.data;
-          Object.keys(supplier).forEach((key) => {
-            if (key in supplier) {
-              setValue(key as keyof DistributorForm, supplier[key] || '');
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Supplier search error:', error);
+      if (response.data.data?.distributors) {
+        const options: DistributorOption[] =
+          response.data.data.distributors.map((dist) => ({
+            value: dist.distributor_name,
+            label: `${dist.distributor_name} | ${dist.gst_number} | ${dist.mobile_number}`,
+            distributor: dist,
+          }));
+        setDistributorOptions(options);
+      } else {
+        setDistributorOptions([]);
       }
-    };
-    fetchSupplier();
-  }, [debouncedValue, setValue]);
+    } catch (error) {
+      console.error('Search error:', error);
+      setDistributorOptions([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
-  // ✅ Save Mutation
+  // Handle distributor selection
+  const handleDistributorSelect = (
+    selectedOption: DistributorOption | null,
+  ) => {
+    if (selectedOption) {
+      const { distributor } = selectedOption;
+      Object.keys(distributor).forEach((key) => {
+        if (key in distributor) {
+          setValue(
+            key as keyof DistributorForm,
+            distributor[key as keyof DistributorForm] || '',
+          );
+        }
+      });
+    }
+  };
+
   const addDistributorMutation = useMutation({
     mutationFn: async (data: DistributorForm) => {
-      const response = await apiClient.post('/suppliers/add', data);
+      const response = await apiClient.post(
+        '/billing-dashboard/add-distributor',
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
-      onClose();
+      reset();
     },
     onError: (error) => {
-      console.error('Add supplier error:', error);
+      console.error('Add distributor error:', error);
     },
   });
 
@@ -120,84 +153,282 @@ export default function AddDistributorModal({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
-      title="Add Distributor"
+      onClose={() => {
+        onClose();
+        addDistributorMutation.reset();
+      }}
+      title={'Add Distributor'}
       backdropEnabled={true}
       className="max-w-3xl"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
-      >
-        <Input
-          label="Supplier Name"
-          placeholder="Enter supplier name"
-          error={errors.suppliers_name?.message}
-          {...register('suppliers_name')}
+      {addDistributorMutation.isSuccess ? (
+        <Success
+          text={addDistributorMutation.data.message}
+          className="py-12"
+          iconSize={{ width: 100, height: 100 }}
         />
+      ) : (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full px-1"
+        >
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Distributor Name
+            </label>
+            <Controller
+              name="distributor_name"
+              control={control}
+              render={({ field }) => (
+                <Select<DistributorOption>
+                  value={
+                    field.value
+                      ? {
+                          value: field.value,
+                          label: field.value,
+                          distributor: {} as DistributorForm,
+                        }
+                      : null
+                  }
+                  options={distributorOptions}
+                  isLoading={isSearching}
+                  onInputChange={(inputValue, { action }) => {
+                    if (action === 'input-change') {
+                      field.onChange(inputValue);
+                      searchDistributors(inputValue);
+                    }
+                  }}
+                  onChange={(selectedOption) => {
+                    if (selectedOption && 'distributor' in selectedOption) {
+                      field.onChange(selectedOption.value);
+                      handleDistributorSelect(selectedOption);
+                    }
+                  }}
+                  inputValue={field.value || ''}
+                  placeholder="Enter distributor name"
+                  isClearable
+                  isSearchable
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) => option.value}
+                  noOptionsMessage={({ inputValue }) =>
+                    inputValue.length < 2
+                      ? 'Type to search existing distributors'
+                      : 'No existing distributors found - you can add as new'
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    option: (base) => ({
+                      ...base,
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                    }),
+                  }}
+                />
+              )}
+            />
+            {errors.distributor_name && (
+              <span className="text-sm text-red-500 mt-1">
+                {errors.distributor_name.message}
+              </span>
+            )}
+          </div>
 
-        <Input
-          label="Mobile Number"
-          placeholder="10 digit mobile"
-          error={errors.mobile_number?.message}
-          {...register('mobile_number')}
-        />
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Mobile Number
+            </label>
+            <Controller
+              name="mobile_number"
+              control={control}
+              render={({ field }) => (
+                <Select<DistributorOption>
+                  value={
+                    field.value
+                      ? {
+                          value: field.value,
+                          label: field.value,
+                          distributor: {} as DistributorForm,
+                        }
+                      : null
+                  }
+                  options={distributorOptions}
+                  isLoading={isSearching}
+                  onInputChange={(inputValue, { action }) => {
+                    if (action === 'input-change') {
+                      field.onChange(inputValue);
+                      searchDistributors(inputValue);
+                    }
+                  }}
+                  onChange={(selectedOption) => {
+                    if (selectedOption && 'distributor' in selectedOption) {
+                      field.onChange(
+                        selectedOption.distributor.mobile_number || '',
+                      );
+                      handleDistributorSelect(selectedOption);
+                    }
+                  }}
+                  inputValue={field.value || ''}
+                  placeholder="Enter mobile number"
+                  isClearable
+                  isSearchable
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) =>
+                    option.distributor.mobile_number || ''
+                  }
+                  noOptionsMessage={({ inputValue }) =>
+                    inputValue.length < 2
+                      ? 'Type to search existing distributors'
+                      : 'No existing distributors found - you can add as new'
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    option: (base) => ({
+                      ...base,
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                    }),
+                  }}
+                />
+              )}
+            />
+            {errors.mobile_number && (
+              <span className="text-sm text-red-500 mt-1">
+                {errors.mobile_number.message}
+              </span>
+            )}
+          </div>
 
-        <Input
-          label="Email (optional)"
-          placeholder="Email"
-          error={errors.email_id?.message}
-          {...register('email_id')}
-        />
-
-        <Input
-          label="GST Number"
-          placeholder="GST Number"
-          error={errors.gst_number?.message}
-          {...register('gst_number')}
-        />
-
-        <Input
-          label="Drug Licence (optional)"
-          placeholder="Drug Licence Number"
-          error={errors.drug_licence_number?.message}
-          {...register('drug_licence_number')}
-        />
-
-        <Input
-          label="State"
-          placeholder="State"
-          error={errors.state?.message}
-          {...register('state')}
-        />
-
-        <Input
-          label="District"
-          placeholder="District"
-          error={errors.district?.message}
-          {...register('district')}
-        />
-
-        <div className="md:col-span-2">
-          <Textarea
-            label="Address"
-            placeholder="Full address"
-            error={errors.address?.message}
-            {...register('address')}
+          <Input
+            label="Email (optional)"
+            placeholder="Email"
+            error={errors.email_id?.message}
+            {...register('email_id')}
           />
-        </div>
 
-        <div className="md:col-span-2">
-          <Button
-            type="submit"
-            variant="default"
-            className="w-full mt-4"
-            // disabled={addDistributorMutation.isLoading}
-          >
-            Save Distributor
-          </Button>
-        </div>
-      </form>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              GST Number
+            </label>
+            <Controller
+              name="gst_number"
+              control={control}
+              render={({ field }) => (
+                <Select<DistributorOption>
+                  value={
+                    field.value
+                      ? {
+                          value: field.value,
+                          label: field.value,
+                          distributor: {} as DistributorForm,
+                        }
+                      : null
+                  }
+                  options={distributorOptions}
+                  isLoading={isSearching}
+                  onInputChange={(inputValue, { action }) => {
+                    if (action === 'input-change') {
+                      field.onChange(inputValue);
+                      searchDistributors(inputValue);
+                    }
+                  }}
+                  onChange={(selectedOption) => {
+                    if (selectedOption && 'distributor' in selectedOption) {
+                      field.onChange(
+                        selectedOption.distributor.gst_number || '',
+                      );
+                      handleDistributorSelect(selectedOption);
+                    }
+                  }}
+                  inputValue={field.value || ''}
+                  placeholder="Enter GST number"
+                  isClearable
+                  isSearchable
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) =>
+                    option.distributor.gst_number || ''
+                  }
+                  noOptionsMessage={({ inputValue }) =>
+                    inputValue.length < 2
+                      ? 'Type to search existing distributors'
+                      : 'No existing distributors found - you can add as new'
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    option: (base) => ({
+                      ...base,
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                    }),
+                  }}
+                />
+              )}
+            />
+            {errors.gst_number && (
+              <span className="text-sm text-red-500 mt-1">
+                {errors.gst_number.message}
+              </span>
+            )}
+          </div>
+
+          <Input
+            label="Drug Licence (optional)"
+            placeholder="Drug Licence Number"
+            error={errors.drug_license_number?.message}
+            {...register('drug_license_number')}
+          />
+
+          <Input
+            label="State"
+            placeholder="State"
+            error={errors.state?.message}
+            {...register('state')}
+          />
+
+          <Input
+            label="District"
+            placeholder="District"
+            error={errors.district?.message}
+            {...register('district')}
+          />
+
+          <Input
+            label="Opening Balance (optional)"
+            type="number"
+            placeholder="Enter opening balance"
+            error={errors.opening_balance?.message}
+            {...register('opening_balance', {
+              setValueAs: (value) => {
+                if (value === '' || value == null) return undefined;
+                const num = Number(value);
+                return isNaN(num) ? undefined : num;
+              },
+            })}
+          />
+
+          <div className="md:col-span-2">
+            <Textarea
+              label="Address"
+              placeholder="Full address"
+              error={errors.address?.message}
+              {...register('address')}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full mt-4"
+              disabled={addDistributorMutation.isPending}
+            >
+              Save Distributor
+            </Button>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }

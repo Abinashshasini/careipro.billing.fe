@@ -29,7 +29,7 @@ const InvoiceDetailsWrapper = ({ distributor }: InvoiceDetailsWrapperProps) => {
           Add New Purchase
         </div>
       </div>
-      {distributor && (
+      {/* {distributor && (
         <div className="mt-4 flex gap-2">
           <div className="h-15 w-15 flex items-center justify-center font-bold text-2xl bg-bg-primary rounded-lg text-primary">
             MD
@@ -71,7 +71,7 @@ const InvoiceDetailsWrapper = ({ distributor }: InvoiceDetailsWrapperProps) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
