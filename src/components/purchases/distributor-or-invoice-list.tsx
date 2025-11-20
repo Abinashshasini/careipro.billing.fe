@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
 
 interface DistributorOrInvoiceListProps {
-  distributorId: number;
   title: string;
   date: string;
   seleceted: boolean;

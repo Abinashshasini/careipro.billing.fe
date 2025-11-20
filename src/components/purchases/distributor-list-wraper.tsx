@@ -1,3 +1,4 @@
+'use client';
 import React, { FC, useState } from 'react';
 import { IoMdSearch } from 'react-icons/io';
 import { LuCalendarArrowUp } from 'react-icons/lu';
@@ -13,22 +14,24 @@ import DistributorOrInvoiceList from './distributor-or-invoice-list';
 import DateRangeFilter from './date-range-filter';
 import SortFilter, { SortOption } from './sort-filter';
 import AddDistributorModal from './add-distributors';
+import { useRouter } from 'next/navigation';
 
-type SuppliersListProps = {
+type DistributorListProps = {
   data: {
     distributors: TDistributor[];
   };
 };
 
 interface DistributorListWraperProps {
-  selectedDistributorId: number | null;
-  setSelectedDistributorId: React.Dispatch<React.SetStateAction<number | null>>;
+  selectedDistributorId: string | null;
+  setSelectedDistributorId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   selectedDistributorId,
   setSelectedDistributorId,
 }) => {
+  const router = useRouter();
   /** Required states and  */
   const [query, setQuery] = useState('');
   const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
@@ -38,7 +41,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
 
   /** API call */
   const fetchData = async (): Promise<TDistributor[]> => {
-    const { data } = await apiClient.get<SuppliersListProps>(
+    const { data } = await apiClient.get<DistributorListProps>(
       '/billing-dashboard/get-distributors',
     );
     return data.data.distributors;
@@ -56,6 +59,12 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
       supplier.gst_number.toLowerCase().includes(query.toLowerCase());
     return matchesText;
   });
+
+  /** Function to replace the route with distributor ID */
+  const handleSelectDistributor = (distributorId: string) => {
+    setSelectedDistributorId(distributorId);
+    router.replace(`/dashboard/purchases?distributorId=${distributorId}`);
+  };
 
   return (
     <div className="h-full">
@@ -144,9 +153,8 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               title={`${element.distributor_name} | (${element.gst_number})`}
               date={`Last Txn: ${element.last_invoice_date || 'NA'}`}
               amount={Number(element.last_invoice_amount) || 0}
-              distributorId={element._id}
               seleceted={selectedDistributorId === element._id}
-              onClick={() => setSelectedDistributorId(element._id)}
+              onClick={() => handleSelectDistributor(element._id)}
             />
           ))
         ) : (
@@ -156,7 +164,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               No Distributors Available
             </h3>
             <p className="text-sm text-gray-500 mb-6 text-center">
-              Get started by adding your first distributor to manage purchases{' '}
+              Get started by adding a distributor to manage purchases{' '}
               <span
                 onClick={() => setOpenAddDistributorModal(true)}
                 className="underline text-sm text-gray-500 cursor-pointer"

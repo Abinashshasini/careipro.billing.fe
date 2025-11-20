@@ -26,7 +26,6 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
 }) => {
   const [form, setForm] = useState<TMedicineFormData>({
     productName: medicine.productName,
-    hsn: medicine.hsn,
     batch: medicine.batch,
     expiryMM: medicine.expiryMM,
     expiryYY: medicine.expiryYY,
@@ -160,25 +159,6 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
         )}
       </div>
       <div
-        className={`hsn input-styles ${
-          showValidation && getFieldError(form, 'hsn') ? 'validation-error' : ''
-        }`}
-      >
-        <input
-          placeholder="HSN*"
-          value={form.hsn}
-          onChange={(e) => handleChange('hsn', e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={getInputClassName('hsn')}
-          tabIndex={0}
-        />
-        {showValidation && getFieldError(form, 'hsn') && (
-          <div className="absolute top-full left-0 text-xs text-red-500 mt-1 z-10 bg-white p-1 rounded shadow">
-            {getFieldError(form, 'hsn')}
-          </div>
-        )}
-      </div>
-      <div
         className={`batch input-styles ${
           showValidation && getFieldError(form, 'batch')
             ? 'validation-error'
@@ -241,7 +221,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
           showValidation && getFieldError(form, 'pack')
             ? 'validation-error'
             : ''
-        } flex items-center px-1 text-sm`}
+        } flex items-center pl-3 pr-1 text-sm`}
       >
         <span className="font-semibold">1×</span>
         <input
@@ -354,19 +334,11 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
           </div>
         )}
       </div>
-      <div className="sch flex items-center px-1 text-sm input-styles">
-        <input
-          type="number"
-          value={5}
-          readOnly
-          className="medicine-input borderless bg-gray-100"
-        />
-        <span>%</span>
-      </div>
 
-      <div className="disc flex items-center px-1 text-sm input-styles">
+      <div className="disc flex items-center pxl-1 pr-2 text-sm input-styles">
         <input
           type="number"
+          placeholder="Disc*"
           value={form.disc}
           onChange={(e) => handleNumberChange('disc', e.target.value)}
           onKeyDown={handleKeyDown}
@@ -378,7 +350,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
         />
         <span>%</span>
       </div>
-      <div className="gst flex items-center px-1 text-sm input-styles">
+      <div className="gst flex items-center pl-1 pr-2 text-sm input-styles">
         <input
           type="number"
           value={5}
@@ -388,7 +360,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
         <span>%</span>
       </div>
 
-      <div className="margin flex items-center px-2 text-sm bg-shade-gray h-10 font-semibold">
+      <div className="margin flex items-center pl-1 pr-2 text-sm bg-shade-gray h-10 font-semibold">
         <span className="px-2 w-full">{margin.toFixed(2)}</span>
         <span>%</span>
       </div>

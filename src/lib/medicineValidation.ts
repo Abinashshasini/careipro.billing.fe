@@ -24,14 +24,6 @@ export const validateMedicine = (
     });
   }
 
-  // HSN - mandatory
-  if (!medicine.hsn || medicine.hsn.trim() === '') {
-    errors.push({
-      field: 'hsn',
-      message: 'HSN is required',
-    });
-  }
-
   // Batch - mandatory
   if (!medicine.batch || medicine.batch.trim() === '') {
     errors.push({
@@ -183,7 +175,6 @@ export const hasAnyData = (
 ): boolean => {
   return (
     medicine.productName.trim() !== '' ||
-    medicine.hsn.trim() !== '' ||
     medicine.batch.trim() !== '' ||
     medicine.expiryMM.trim() !== '' ||
     medicine.expiryYY.trim() !== '' ||

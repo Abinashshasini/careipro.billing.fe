@@ -70,10 +70,15 @@ body {
   animation: zoom-in 0.6s ease-out forwards;
 }
 
+.border-box-shadow {
+  border: 1px solid var(--color-input-border);
+  box-shadow: var(--color-input-boxshadow);
+}
+
 /* React Select Styling */
 .react-select-container .react-select__control {
   border: 1px solid var(--color-input-border);
-  border-radius: 0.5rem;
+  border-radius: 6px;
   min-height: 2.5rem;
   box-shadow: var(--color-input-boxshadow);
 }

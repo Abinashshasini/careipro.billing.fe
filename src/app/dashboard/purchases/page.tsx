@@ -7,7 +7,7 @@ import DistibutorListWraper from '@/components/purchases/distributor-list-wraper
 
 const PurchaseContainer = () => {
   const [selectedDistributorId, setSelectedDistributorId] = useState<
-    number | null
+    string | null
   >(null);
 
   return (
@@ -22,7 +22,7 @@ const PurchaseContainer = () => {
 
       {/* Right Panel */}
       <div className="h-full flex-1">
-        <InvoiceDetailsWrapper />
+        <InvoiceDetailsWrapper selectedDistributorId={selectedDistributorId} />
       </div>
     </div>
   );

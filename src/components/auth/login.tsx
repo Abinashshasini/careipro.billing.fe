@@ -39,11 +39,10 @@ export default function Login() {
       return data.data;
     },
     onSuccess: (data) => {
-      // Pass the data structure that setAuthData expects
       authClient.setAuthData({
         token: data.token,
-        user: data.user,
-        datastore_key: data.user.database_key,
+        user: data,
+        datastore_key: data.datastore_key,
       });
       router.push('/dashboard');
     },

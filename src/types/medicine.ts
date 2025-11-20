@@ -1,7 +1,6 @@
 export type TMedicine = {
   id: string;
   productName: string;
-  hsn: string;
   batch: string;
   expiryMM: string;
   expiryYY: string;

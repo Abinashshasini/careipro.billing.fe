@@ -5,57 +5,55 @@ import { IoChevronBackOutline } from 'react-icons/io5';
 import { FaFileMedical } from 'react-icons/fa6';
 import { HiSaveAs } from 'react-icons/hi';
 import { DatePicker } from 'react-datepicker';
-import { RiArrowDownSFill } from 'react-icons/ri';
+import Select from 'react-select';
+import toast, { Toaster } from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { useQueryClient } from '@tanstack/react-query';
-import { TSupplier } from '@/types/purchases';
-import { BehaviourProvidorDiv } from '@/components/ui/behaviour-providor-div';
+import { TDistributor } from '@/types/purchases';
 import MedicineListManager from '@/components/purchases/medicine-list-manager';
 import ImportMedicinesModal from '@/components/purchases/import-medicines-modal';
 import { TMedicine } from '@/types/medicine';
 import { isRowComplete } from '@/lib/medicineValidation';
 import 'react-datepicker/dist/react-datepicker.css';
 
-type TinvoiceTypes = {
-  invoiceNumber: string;
+type TPurchaseInfo = {
   selectedDistributor: string;
+  distributorName: string;
+  invoiceNo: string;
   invoiceDate: Date | null;
   paymentDueDate: Date | null;
+};
+
+type DistributorOption = {
+  value: string;
+  label: string;
 };
 
 const AddPurchaseOrder = () => {
   const router = useRouter();
 
   /** Required states */
-  const [invoiceInfo, setInvoiceInfo] = useState<TinvoiceTypes>({
-    invoiceNumber: '',
+  const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
     selectedDistributor: '',
+    distributorName: '',
+    invoiceNo: '',
     invoiceDate: new Date(),
     paymentDueDate: new Date(),
   });
-
   const [medicines, setMedicines] = useState<TMedicine[]>([]);
-  const [supplierInfo, setSupplierInfo] = useState({
-    supplierName: '',
-    invoiceNo: '',
-    invoiceDate: '',
-    dueDate: '',
-  });
   const [showImportModal, setShowImportModal] = useState(false);
 
   const queryClient = useQueryClient();
-  const suppliers = queryClient.getQueryData<TSupplier[]>(['suppliers']) || [];
+  const distributors =
+    queryClient.getQueryData<TDistributor[]>(['distributors']) || [];
 
   const handleMedicinesChange = (updatedMedicines: TMedicine[]) => {
     setMedicines(updatedMedicines);
-    console.log('Updated medicines:', updatedMedicines);
   };
 
   /** Handle import of medicines from file */
   const handleImportMedicines = (importedMedicines: TMedicine[]) => {
-    console.log('Importing medicines:', importedMedicines);
     setMedicines((prev) => {
       const hasOnlyEmptyRow =
         prev.length === 1 &&
@@ -69,8 +67,26 @@ const AddPurchaseOrder = () => {
     });
   };
 
+  /** Function to handle form submission */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!purchaseInfo.distributorName.trim()) {
+      toast.error('Please select a distributor.');
+      return;
+    }
+    if (!purchaseInfo.invoiceNo.trim()) {
+      toast.error('Please enter an invoice number.');
+      return;
+    }
+    if (!purchaseInfo.invoiceDate) {
+      toast.error('Please select an invoice date.');
+      return;
+    }
+    if (!purchaseInfo.paymentDueDate) {
+      toast.error('Please select a payment due date.');
+      return;
+    }
 
     const validMedicines = medicines.filter((medicine) =>
       isRowComplete(medicine),
@@ -87,31 +103,50 @@ const AddPurchaseOrder = () => {
     );
 
     if (invalidMedicines.length > 0) {
-      alert(
+      toast.error(
         `Please complete all required fields for ${invalidMedicines.length} medicine row(s) before submitting.`,
       );
       return;
     }
 
     if (validMedicines.length === 0) {
-      alert(
+      toast.error(
         'Please add at least one complete medicine entry before submitting.',
       );
       return;
     }
 
     const purchaseData = {
-      supplier: supplierInfo,
+      distributor: {
+        distributorName: purchaseInfo.distributorName,
+        invoiceNo: purchaseInfo.invoiceNo,
+        invoiceDate:
+          purchaseInfo.invoiceDate?.toISOString().split('T')[0] || '',
+        dueDate: purchaseInfo.paymentDueDate?.toISOString().split('T')[0] || '',
+      },
       medicines: validMedicines,
       totals: calculateTotals(validMedicines),
     };
 
     console.log('Purchase Data:', purchaseData);
-    alert(
-      `Purchase saved successfully with ${validMedicines.length} medicine(s)! Check developer tools for details.`,
+    toast.success(
+      `Purchase saved successfully with ${validMedicines.length} medicine(s)!`,
     );
   };
 
+  /** Function to validate that due date is not before invoice date */
+  const validateDateOrder = (
+    invoiceDate: Date | null,
+    dueDate: Date | null,
+  ) => {
+    if (invoiceDate && dueDate && dueDate < invoiceDate) {
+      toast.error('Payment due date cannot be before invoice date.');
+      return false;
+    }
+    return true;
+  };
+
+  /** Function to calculate totals for medicines */
   const calculateTotals = (medicineList: TMedicine[]) => {
     return medicineList.reduce(
       (acc, medicine) => {
@@ -150,6 +185,7 @@ const AddPurchaseOrder = () => {
       className="h-full w-full rounded-xl bg-white p-6 min-w-6xl"
       style={{ height: 'calc(100vh - 96px)' }}
     >
+      <Toaster position="top-right" reverseOrder={true} />
       {/* Header Code */}
       <div className="flex justify-between mb-6">
         <div className="flex gap-2">
@@ -175,7 +211,12 @@ const AddPurchaseOrder = () => {
             <FaFileMedical className="mr-2" size={20} />
             Import CSV/PDF
           </Button>
-          <Button type="submit" variant="default" className="font-semibold">
+          <Button
+            type="submit"
+            variant="default"
+            className="font-semibold"
+            onClick={handleSubmit}
+          >
             <HiSaveAs className="mr-2" size={20} />
             Save (Alt + S)
           </Button>
@@ -189,34 +230,50 @@ const AddPurchaseOrder = () => {
             SELECT DISTRIBUTOR
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <Select
-            value={invoiceInfo.selectedDistributor}
-            onChange={(value) =>
-              setInvoiceInfo({ ...invoiceInfo, selectedDistributor: value })
+          <Select<DistributorOption>
+            value={
+              distributors.find(
+                (d) => d._id === purchaseInfo.selectedDistributor,
+              )
+                ? {
+                    value:
+                      distributors.find(
+                        (d) => d._id === purchaseInfo.selectedDistributor,
+                      )?._id || '',
+                    label:
+                      distributors.find(
+                        (d) => d._id === purchaseInfo.selectedDistributor,
+                      )?.distributor_name || '',
+                  }
+                : null
             }
+            onChange={(selectedOption) => {
+              const selectedDistributor = distributors.find(
+                (d) => d._id === selectedOption?.value,
+              );
+              setPurchaseInfo({
+                ...purchaseInfo,
+                selectedDistributor: selectedOption?.value || '',
+                distributorName: selectedDistributor?.distributor_name || '',
+              });
+            }}
+            options={distributors.map((distributor) => ({
+              value: distributor._id,
+              label: `${distributor.distributor_name} | ${distributor.gst_number}`,
+            }))}
             placeholder="Select Distributor"
-            searchable
-            className="w-64 mt-2"
-            icon={<RiArrowDownSFill size={20} />}
-          >
-            {({ searchTerm, setValue }) =>
-              suppliers
-                .filter((element) =>
-                  element.supplier_name
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()),
-                )
-                .map((_element) => (
-                  <div
-                    key={_element.supplier_id}
-                    onClick={() => setValue(_element.supplier_name)}
-                    className="cursor-pointer px-3 py-2 hover:bg-gray-100"
-                  >
-                    {_element.supplier_name}
-                  </div>
-                ))
-            }
-          </Select>
+            isSearchable
+            isClearable
+            className="react-select-container w-64 text-sm"
+            classNamePrefix="react-select"
+            styles={{
+              option: (base) => ({
+                ...base,
+                fontSize: '0.875rem',
+                fontWeight: '600',
+              }),
+            }}
+          />
         </div>
 
         <div>
@@ -224,7 +281,18 @@ const AddPurchaseOrder = () => {
             INVOICE NUMBER
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <Input placeholder="Invoice Number" className="w-64" />
+          <Input
+            placeholder="Invoice Number"
+            className="w-64"
+            value={purchaseInfo.invoiceNo}
+            onChange={(e) =>
+              setPurchaseInfo({
+                ...purchaseInfo,
+                invoiceNo: e.target.value,
+              })
+            }
+            required
+          />
         </div>
 
         <div>
@@ -232,17 +300,33 @@ const AddPurchaseOrder = () => {
             INVOICE DATE
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center w-64">
+          <div className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center border-box-shadow">
             <DatePicker
               showIcon
               dateFormat="dd-MM-yyyy"
-              className="text-center p-3 w-30 rounded text-sm  outline-none  focus:ring-0 bg-transparent"
-              selected={invoiceInfo.invoiceDate}
+              className="text-center p-3 w-30 rounded text-sm  outline-none  focus:ring-0 bg-transparent react-select__control"
+              selected={purchaseInfo.invoiceDate}
               onChange={(date) => {
-                setInvoiceInfo({ ...invoiceInfo, invoiceDate: date });
+                if (
+                  purchaseInfo.paymentDueDate &&
+                  date &&
+                  purchaseInfo.paymentDueDate < date
+                ) {
+                  toast.error(
+                    'Payment due date cannot be before invoice date. Please update the payment date.',
+                  );
+                  setPurchaseInfo({
+                    ...purchaseInfo,
+                    invoiceDate: date,
+                    paymentDueDate: date,
+                  });
+                } else {
+                  setPurchaseInfo({ ...purchaseInfo, invoiceDate: date });
+                }
               }}
+              required
             />
-          </BehaviourProvidorDiv>
+          </div>
         </div>
 
         <div>
@@ -250,17 +334,20 @@ const AddPurchaseOrder = () => {
             PAYMENT DATE
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <BehaviourProvidorDiv className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center w-64">
+          <div className="border border-border rounded-lg pr-4 pl-2 h-10 hover:bg-grayLight transition cursor-pointer flex items-center border-box-shadow">
             <DatePicker
               showIcon
               dateFormat="dd-MM-yyyy"
-              className="text-center p-3 w-30 rounded text-sm  outline-none  focus:ring-0 bg-transparent"
-              selected={invoiceInfo.paymentDueDate}
+              className="text-center p-3 w-30 rounded text-sm outline-none focus:ring-0 bg-transparent"
+              selected={purchaseInfo.paymentDueDate}
               onChange={(date) => {
-                setInvoiceInfo({ ...invoiceInfo, paymentDueDate: date });
+                if (validateDateOrder(purchaseInfo.invoiceDate, date)) {
+                  setPurchaseInfo({ ...purchaseInfo, paymentDueDate: date });
+                }
               }}
+              required
             />
-          </BehaviourProvidorDiv>
+          </div>
         </div>
       </div>
 
