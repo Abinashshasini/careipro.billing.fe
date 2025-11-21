@@ -10,6 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/apiClient';
 import { Loader } from '../ui/loader';
 import { authClient } from '@/utils/auth';
+import { LOGIN_API } from '@/utils/api-endpoints';
 
 const FormSchema = z.object({
   mobile: z.string().regex(/^[0-9]{10}$/, 'Mobile must be 10 digits'),
@@ -35,7 +36,7 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: { mobile: string; password: string }) => {
-      const { data } = await apiClient.post('/authentication/login', payload);
+      const { data } = await apiClient.post(LOGIN_API, payload);
       return data.data;
     },
     onSuccess: (data) => {
@@ -43,6 +44,7 @@ export default function Login() {
         token: data.token,
         user: data,
         datastore_key: data.datastore_key,
+        token_exp_time: data.token_exp_time,
       });
       router.push('/dashboard');
     },

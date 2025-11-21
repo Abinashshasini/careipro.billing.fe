@@ -15,6 +15,7 @@ import DateRangeFilter from './date-range-filter';
 import SortFilter, { SortOption } from './sort-filter';
 import AddDistributorModal from './add-distributors';
 import { useRouter } from 'next/navigation';
+import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
 
 type DistributorListProps = {
   data: {
@@ -41,9 +42,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
 
   /** API call */
   const fetchData = async (): Promise<TDistributor[]> => {
-    const { data } = await apiClient.get<DistributorListProps>(
-      '/billing-dashboard/get-distributors',
-    );
+    const { data } = await apiClient.get<DistributorListProps>(GET_DISTRIBUTORS);
     return data.data.distributors;
   };
 

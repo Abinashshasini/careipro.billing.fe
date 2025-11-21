@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import Success from '@/components/ui/success';
 import apiClient from '@/lib/apiClient';
+import { ADD_DISTRIBUTOR } from '@/utils/api-endpoints';
 
 const DistributorSchema = z.object({
   distributor_name: z.string().min(2, 'Distributor name is required'),
@@ -61,10 +62,7 @@ export default function AddDistributorModal({
 
   const addDistributorMutation = useMutation({
     mutationFn: async (data: DistributorForm) => {
-      const response = await apiClient.post(
-        '/billing-dashboard/add-distributor',
-        data,
-      );
+      const response = await apiClient.post(ADD_DISTRIBUTOR, data);
       return response.data;
     },
     onSuccess: () => {

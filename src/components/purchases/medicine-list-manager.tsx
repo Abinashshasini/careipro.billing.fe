@@ -29,8 +29,8 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
 
   return (
     <>
-      <div className="w-full light-border rounded-lg items-start px-4 pt-6 pb-6 gap-2 flex flex-col overflow-y-auto overflow-x-hidden h-full">
-        <div className="flex items-center whitespace-nowrap text-xs font-regular text-black relative  w-full">
+      <div className="w-full light-border rounded-lg items-start px-4 pb-6 flex flex-col overflow-y-auto overflow-x-hidden h-full relative">
+        <div className="flex items-center whitespace-nowrap text-xs font-regular text-black w-full sticky top-0 bg-white py-4 z-2">
           <div className="initial">#</div>
           <div className="productName">Product / Barcode</div>
           <div className="batch">BATCH</div>
@@ -48,7 +48,7 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
         </div>
 
         {/* Add Medicine Row */}
-        <div className="space-y-1  pr-2">
+        <div className="space-y-1 pr-2">
           {medicines.map((medicine, index) => (
             <AddMedicineRow
               key={medicine.id}

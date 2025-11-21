@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { FaFileMedical } from 'react-icons/fa6';
@@ -9,21 +9,10 @@ import Select from 'react-select';
 import toast, { Toaster } from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useQueryClient } from '@tanstack/react-query';
-import { TDistributor } from '@/types/purchases';
 import MedicineListManager from '@/components/purchases/medicine-list-manager';
 import ImportMedicinesModal from '@/components/purchases/import-medicines-modal';
-import { TMedicine } from '@/types/medicine';
-import { isRowComplete } from '@/lib/medicineValidation';
+import useAddPurchase from '@/hooks/useAddPurchase';
 import 'react-datepicker/dist/react-datepicker.css';
-
-type TPurchaseInfo = {
-  selectedDistributor: string;
-  distributorName: string;
-  invoiceNo: string;
-  invoiceDate: Date | null;
-  paymentDueDate: Date | null;
-};
 
 type DistributorOption = {
   value: string;
@@ -33,152 +22,20 @@ type DistributorOption = {
 const AddPurchaseOrder = () => {
   const router = useRouter();
 
-  /** Required states */
-  const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
-    selectedDistributor: '',
-    distributorName: '',
-    invoiceNo: '',
-    invoiceDate: new Date(),
-    paymentDueDate: new Date(),
-  });
-  const [medicines, setMedicines] = useState<TMedicine[]>([]);
-  const [showImportModal, setShowImportModal] = useState(false);
-
-  const queryClient = useQueryClient();
-  const distributors =
-    queryClient.getQueryData<TDistributor[]>(['distributors']) || [];
-
-  const handleMedicinesChange = (updatedMedicines: TMedicine[]) => {
-    setMedicines(updatedMedicines);
-  };
-
-  /** Handle import of medicines from file */
-  const handleImportMedicines = (importedMedicines: TMedicine[]) => {
-    setMedicines((prev) => {
-      const hasOnlyEmptyRow =
-        prev.length === 1 &&
-        !prev[0].productName &&
-        !prev[0].hsn &&
-        !prev[0].batch;
-      const newMedicines = hasOnlyEmptyRow
-        ? importedMedicines
-        : [...prev, ...importedMedicines];
-      return newMedicines;
-    });
-  };
-
-  /** Function to handle form submission */
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!purchaseInfo.distributorName.trim()) {
-      toast.error('Please select a distributor.');
-      return;
-    }
-    if (!purchaseInfo.invoiceNo.trim()) {
-      toast.error('Please enter an invoice number.');
-      return;
-    }
-    if (!purchaseInfo.invoiceDate) {
-      toast.error('Please select an invoice date.');
-      return;
-    }
-    if (!purchaseInfo.paymentDueDate) {
-      toast.error('Please select a payment due date.');
-      return;
-    }
-
-    const validMedicines = medicines.filter((medicine) =>
-      isRowComplete(medicine),
-    );
-    const invalidMedicines = medicines.filter(
-      (medicine) =>
-        !isRowComplete(medicine) &&
-        (medicine.productName.trim() !== '' ||
-          medicine.hsn.trim() !== '' ||
-          medicine.batch.trim() !== '' ||
-          (medicine.qty !== '' && Number(medicine.qty) > 0) ||
-          (medicine.mrp !== '' && Number(medicine.mrp) > 0) ||
-          (medicine.rate !== '' && Number(medicine.rate) > 0)),
-    );
-
-    if (invalidMedicines.length > 0) {
-      toast.error(
-        `Please complete all required fields for ${invalidMedicines.length} medicine row(s) before submitting.`,
-      );
-      return;
-    }
-
-    if (validMedicines.length === 0) {
-      toast.error(
-        'Please add at least one complete medicine entry before submitting.',
-      );
-      return;
-    }
-
-    const purchaseData = {
-      distributor: {
-        distributorName: purchaseInfo.distributorName,
-        invoiceNo: purchaseInfo.invoiceNo,
-        invoiceDate:
-          purchaseInfo.invoiceDate?.toISOString().split('T')[0] || '',
-        dueDate: purchaseInfo.paymentDueDate?.toISOString().split('T')[0] || '',
-      },
-      medicines: validMedicines,
-      totals: calculateTotals(validMedicines),
-    };
-
-    console.log('Purchase Data:', purchaseData);
-    toast.success(
-      `Purchase saved successfully with ${validMedicines.length} medicine(s)!`,
-    );
-  };
-
-  /** Function to validate that due date is not before invoice date */
-  const validateDateOrder = (
-    invoiceDate: Date | null,
-    dueDate: Date | null,
-  ) => {
-    if (invoiceDate && dueDate && dueDate < invoiceDate) {
-      toast.error('Payment due date cannot be before invoice date.');
-      return false;
-    }
-    return true;
-  };
-
-  /** Function to calculate totals for medicines */
-  const calculateTotals = (medicineList: TMedicine[]) => {
-    return medicineList.reduce(
-      (acc, medicine) => {
-        const packParts = medicine.pack.split('×').map((p) => parseInt(p, 10));
-        const unitsPerStrip =
-          packParts.length === 2 && !isNaN(packParts[0]) && !isNaN(packParts[1])
-            ? packParts[0] * packParts[1]
-            : 1;
-
-        const totalStrips =
-          Number(medicine.qty || 0) + Number(medicine.free || 0);
-        const totalUnits = totalStrips * unitsPerStrip;
-        const totalRate = totalUnits * Number(medicine.rate || 0);
-
-        const discountAmount = totalRate * (Number(medicine.disc || 0) / 100);
-        const afterDiscount = totalRate - discountAmount;
-        const gst = afterDiscount * 0.05;
-        const finalAmount = afterDiscount + gst;
-
-        acc.totalAmount += finalAmount;
-        acc.totalItems += totalUnits;
-        acc.totalQuantity += Number(medicine.qty || 0);
-
-        return acc;
-      },
-      {
-        totalAmount: 0,
-        totalItems: 0,
-        totalQuantity: 0,
-      },
-    );
-  };
+  const {
+    purchaseInfo,
+    setPurchaseInfo,
+    medicines,
+    showImportModal,
+    setShowImportModal,
+    distributors,
+    distributorsLoading,
+    invoiceError,
+    handleMedicinesChange,
+    handleImportMedicines,
+    handleSubmit,
+    validateDateOrder,
+  } = useAddPurchase();
 
   return (
     <div
@@ -261,9 +118,17 @@ const AddPurchaseOrder = () => {
               value: distributor._id,
               label: `${distributor.distributor_name} | ${distributor.gst_number}`,
             }))}
-            placeholder="Select Distributor"
+            placeholder={
+              distributorsLoading
+                ? 'Loading distributors...'
+                : 'Select Distributor'
+            }
             isSearchable
             isClearable
+            isLoading={distributorsLoading}
+            noOptionsMessage={() =>
+              distributorsLoading ? 'Loading...' : 'No distributors found'
+            }
             className="react-select-container w-64 text-sm"
             classNamePrefix="react-select"
             styles={{
@@ -281,18 +146,20 @@ const AddPurchaseOrder = () => {
             INVOICE NUMBER
             <span className="text-danger text-xl absolute -top-1">*</span>
           </p>
-          <Input
-            placeholder="Invoice Number"
-            className="w-64"
-            value={purchaseInfo.invoiceNo}
-            onChange={(e) =>
-              setPurchaseInfo({
-                ...purchaseInfo,
-                invoiceNo: e.target.value,
-              })
-            }
-            required
-          />
+          <div className="relative">
+            <Input
+              placeholder="Invoice Number"
+              value={purchaseInfo.invoiceNo}
+              onChange={(e) => {
+                setPurchaseInfo({
+                  ...purchaseInfo,
+                  invoiceNo: e.target.value,
+                });
+              }}
+              error={invoiceError || undefined}
+              required
+            />
+          </div>
         </div>
 
         <div>

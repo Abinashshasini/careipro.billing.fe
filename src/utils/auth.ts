@@ -38,23 +38,44 @@ export const authClient = {
   },
 
   // Set auth data (localStorage + cookies for middleware)
-  setAuthData: (data: { token: string; user: User; datastore_key: string }) => {
+  setAuthData: (data: {
+    token: string;
+    user: User;
+    datastore_key: string;
+    token_exp_time?: string;
+  }) => {
     if (typeof window === 'undefined') return;
 
     // Store in localStorage (for client components)
     localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, data.token);
     localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data));
-    localStorage.setItem(
-      AUTH_STORAGE_KEYS.DATABASE_KEY,
-      data.datastore_key,
-    );
+    localStorage.setItem(AUTH_STORAGE_KEYS.DATABASE_KEY, data.datastore_key);
 
-    document.cookie = `${AUTH_COOKIE_KEYS.TOKEN}=${
-      data.token
-    }; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=lax`;
-    document.cookie = `${AUTH_COOKIE_KEYS.DATABASE_KEY}=${
-      data.datastore_key
-    }; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=lax`;
+    // Calculate cookie expiry based on token_exp_time or default to 7 days
+    let maxAge = 7 * 24 * 60 * 60; // Default 7 days in seconds
+
+    if (data.token_exp_time) {
+      try {
+        const expTime = new Date(data.token_exp_time);
+        const currentTime = new Date();
+        const diffInSeconds = Math.floor(
+          (expTime.getTime() - currentTime.getTime()) / 1000,
+        );
+
+        // Use calculated time if it's positive, otherwise use default
+        if (diffInSeconds > 0) {
+          maxAge = diffInSeconds;
+        }
+      } catch (error) {
+        console.warn(
+          'Invalid token_exp_time format, using default expiry:',
+          error,
+        );
+      }
+    }
+
+    document.cookie = `${AUTH_COOKIE_KEYS.TOKEN}=${data.token}; path=/; max-age=${maxAge}; SameSite=lax`;
+    document.cookie = `${AUTH_COOKIE_KEYS.DATABASE_KEY}=${data.datastore_key}; path=/; max-age=${maxAge}; SameSite=lax`;
   },
 
   // Clear auth data
