@@ -1,16 +1,39 @@
 'use client';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { IoMdAdd } from 'react-icons/io';
 import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
-import { TDistributor } from '@/types/purchases';
+import { TDistributorSummary } from '@/types/purchases';
 import { useQuery } from '@tanstack/react-query';
-import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
+import { GET_DISTRIBUTOR_BYID } from '@/utils/api-endpoints';
+import DistributorDetails from './distributor-details';
+import DistributorInfoShimmer from '@/components/shimmers/distributor-info-shimmer';
 
 interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
 }
+
+// Demo distributor data to show when no distributor is selected
+const DEMO_DISTRIBUTOR: TDistributorSummary = {
+  distributor: {
+    _id: 'demo-id',
+    distributor_name: 'Sample Medical Distributors',
+    gst_number: '29DEMO1234L1ZW',
+    state: 'Maharashtra',
+    mobile_number: '9876543210',
+  },
+  purchaseOrders: [],
+  purchaseSummary: {
+    last_invoice: null,
+    last_invoice_date: null,
+    paid_amount: 0,
+    partial_amount: 0,
+    pending_amount: 0,
+    total_amount: 0,
+    total_orders: 0,
+  },
+};
 
 const InvoiceDetailsWrapper = ({
   selectedDistributorId,
@@ -19,26 +42,40 @@ const InvoiceDetailsWrapper = ({
   const searchParams = useSearchParams();
   const distributorId = searchParams.get('distributorId');
 
+  // Check if we have a distributor ID to fetch
+  const hasDistributorId = Boolean(selectedDistributorId || distributorId);
+
   /** API call */
-  const fetchData = async (): Promise<TDistributor> => {
-    const { data } = await apiClient.get<{ data: TDistributor }>(
-      GET_DISTRIBUTORS,
-      { params: { distributor_id: selectedDistributorId || distributorId } },
+  const fetchData = async (): Promise<TDistributorSummary> => {
+    const { data } = await apiClient.get<{ data: TDistributorSummary }>(
+      `${GET_DISTRIBUTOR_BYID}/${selectedDistributorId || distributorId}`,
     );
     return data.data;
   };
 
-  const { data, isLoading } = useQuery<TDistributor>({
-    queryKey: [`${distributorId}-distributors`],
+  const { data, isLoading } = useQuery<TDistributorSummary>({
+    queryKey: [`${selectedDistributorId || distributorId}-distributor`],
     queryFn: fetchData,
     staleTime: 1000 * 60 * 5,
+    enabled: hasDistributorId,
   });
 
-  useEffect(() => {
-    if (selectedDistributorId || distributorId) {
-      fetchData();
+  // Determine what to render based on state
+  const renderDistributorInfo = () => {
+    if (!hasDistributorId) {
+      return <DistributorDetails data={DEMO_DISTRIBUTOR} />;
     }
-  }, [selectedDistributorId, distributorId]);
+
+    if (isLoading) {
+      return <DistributorInfoShimmer />;
+    }
+
+    if (data) {
+      return <DistributorDetails data={data} />;
+    }
+
+    return <DistributorDetails data={DEMO_DISTRIBUTOR} />;
+  };
 
   return (
     <div>
@@ -60,54 +97,7 @@ const InvoiceDetailsWrapper = ({
         </div>
       </div>
       <div className="p-4 border-b-1 border-border pt-2">
-        {data && (
-          <div className="flex gap-4">
-            <div className="h-15 w-15 flex items-center justify-center font-bold text-2xl bg-bg-primary rounded-lg text-primary">
-              {data.distributor_name &&
-                data.distributor_name.slice(0, 2).toUpperCase()}
-            </div>
-            <div>
-              <div className="text-lg font-medium">
-                {data.distributor_name}&nbsp;({data.gst_number})
-              </div>
-              <div className="text-sm text-gray flex gap-4">
-                <p>
-                  {data.state},&nbsp;{data.mobile_number}
-                </p>
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <div className="text-sm">
-                  Last Invoice -
-                  <span
-                    className={`${
-                      data.last_invoice_no ? 'text-black' : 'text-input-border'
-                    } font-medium ml-2`}
-                  >
-                    {data.last_invoice_no || '#12345'}
-                  </span>
-                  <span
-                    className={`${
-                      data.last_invoice_no ? 'text-black' : 'text-input-border'
-                    } font-medium`}
-                  >
-                    &nbsp;on {data.last_invoice_date || '#2024-01-01'}
-                  </span>
-                </div>
-                <div className="text-sm">
-                  Total Amount -
-                  <span
-                    className={`${
-                      data.last_invoice_no ? 'text-black' : 'text-input-border'
-                    } font-medium ml-2`}
-                  >
-                    ₹{data.last_invoice_amount || '0.00'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {renderDistributorInfo()}
       </div>
     </div>
   );
