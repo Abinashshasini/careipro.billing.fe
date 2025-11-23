@@ -1,12 +1,6 @@
 import React, { FC } from 'react';
 
-interface DistributorOrInvoiceListProps {
-  title: string;
-  date: string;
-  seleceted: boolean;
-  amount?: number | string;
-  onClick?: () => void;
-}
+import { DistributorOrInvoiceListProps } from '@/types/purchases';
 
 const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
   title = '',

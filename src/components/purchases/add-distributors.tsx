@@ -31,10 +31,7 @@ const DistributorSchema = z.object({
 
 type DistributorForm = z.infer<typeof DistributorSchema>;
 
-interface AddDistributorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { AddDistributorModalProps } from '@/types/purchases';
 
 export default function AddDistributorModal({
   isOpen,

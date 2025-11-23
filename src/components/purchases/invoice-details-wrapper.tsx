@@ -8,10 +8,6 @@ import { TDistributor } from '@/types/purchases';
 import { useQuery } from '@tanstack/react-query';
 import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
 
-type DistributorListProps = {
-  data: TDistributor;
-};
-
 interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
 }
@@ -25,7 +21,7 @@ const InvoiceDetailsWrapper = ({
 
   /** API call */
   const fetchData = async (): Promise<TDistributor> => {
-    const { data } = await apiClient.get<DistributorListProps>(
+    const { data } = await apiClient.get<{ data: TDistributor }>(
       GET_DISTRIBUTORS,
       { params: { distributor_id: selectedDistributorId || distributorId } },
     );

@@ -1,13 +1,8 @@
 'use client';
 import React from 'react';
 import AddMedicineRow from './add-medicine-row';
-import { TMedicine } from '@/types/medicine';
+import { TMedicine, MedicineListManagerProps } from '@/types/purchases';
 import { useMedicineForm } from '@/hooks/useMedicineForm';
-
-interface MedicineListManagerProps {
-  onMedicinesChange?: (medicines: TMedicine[]) => void;
-  initialMedicines?: TMedicine[];
-}
 
 const MedicineListManager: React.FC<MedicineListManagerProps> = ({
   onMedicinesChange,
@@ -45,6 +40,14 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
           <div className="margin">MARGIN</div>
           <div className="amount">AMT</div>
           <div className="amount">ACTION</div>
+          {medicines?.length > 1 && (
+            <button
+              onClick={clearAllMedicines}
+              className="text-red-600 hover:text-red-800 font-bold"
+            >
+              CLEAR ALL
+            </button>
+          )}
         </div>
 
         {/* Add Medicine Row */}

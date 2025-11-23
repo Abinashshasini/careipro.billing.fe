@@ -1,15 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
-import { TMedicine, TMedicineFormData } from '@/types/medicine';
+import {
+  TMedicine,
+  TMedicineFormData,
+  UseMedicineFormOptions,
+} from '@/types/purchases';
 import { isRowComplete, hasAnyData } from '@/lib/medicineValidation';
 
 // Simple ID generator
 const generateId = () =>
   `medicine_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-interface UseMedicineFormOptions {
-  initialMedicines?: TMedicine[];
-  onMedicinesChange?: (medicines: TMedicine[]) => void;
-}
 
 export const useMedicineForm = (options: UseMedicineFormOptions = {}) => {
   const { initialMedicines = [], onMedicinesChange } = options;

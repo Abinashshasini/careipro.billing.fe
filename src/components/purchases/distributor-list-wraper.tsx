@@ -7,7 +7,7 @@ import { TbSortAscending } from 'react-icons/tb';
 
 import { SearchBar } from '@/components/ui/searchbar';
 import apiClient from '@/lib/apiClient';
-import { TDistributor } from '@/types/purchases';
+import { TDistributor, DistributorListWraperProps } from '@/types/purchases';
 import { useQuery } from '@tanstack/react-query';
 import { DistributorShimmer } from '@/components/shimmers/distributor-shimmer';
 import DistributorOrInvoiceList from './distributor-or-invoice-list';
@@ -16,17 +16,6 @@ import SortFilter, { SortOption } from './sort-filter';
 import AddDistributorModal from './add-distributors';
 import { useRouter } from 'next/navigation';
 import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
-
-type DistributorListProps = {
-  data: {
-    distributors: TDistributor[];
-  };
-};
-
-interface DistributorListWraperProps {
-  selectedDistributorId: string | null;
-  setSelectedDistributorId: React.Dispatch<React.SetStateAction<string | null>>;
-}
 
 const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   selectedDistributorId,
@@ -42,7 +31,9 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
 
   /** API call */
   const fetchData = async (): Promise<TDistributor[]> => {
-    const { data } = await apiClient.get<DistributorListProps>(GET_DISTRIBUTORS);
+    const { data } = await apiClient.get<{
+      data: { distributors: TDistributor[] };
+    }>(GET_DISTRIBUTORS);
     return data.data.distributors;
   };
 

@@ -1,4 +1,4 @@
-import { TMedicineFormData } from '@/types/medicine';
+import { TMedicineFormData } from '@/types/purchases';
 
 export interface ParsedMedicineData {
   success: boolean;

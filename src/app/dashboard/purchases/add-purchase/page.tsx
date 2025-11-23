@@ -14,10 +14,7 @@ import ImportMedicinesModal from '@/components/purchases/import-medicines-modal'
 import useAddPurchase from '@/hooks/useAddPurchase';
 import 'react-datepicker/dist/react-datepicker.css';
 
-type DistributorOption = {
-  value: string;
-  label: string;
-};
+import { DistributorOption } from '@/types/purchases';
 
 const AddPurchaseOrder = () => {
   const router = useRouter();
@@ -30,6 +27,8 @@ const AddPurchaseOrder = () => {
     setShowImportModal,
     distributors,
     distributorsLoading,
+    isCheckingInvoice,
+    isSubmitting,
     invoiceError,
     handleMedicinesChange,
     handleImportMedicines,
@@ -73,15 +72,25 @@ const AddPurchaseOrder = () => {
             variant="default"
             className="font-semibold"
             onClick={handleSubmit}
+            disabled={isSubmitting || !!invoiceError}
           >
-            <HiSaveAs className="mr-2" size={20} />
-            Save (Alt + S)
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <HiSaveAs className="mr-2" size={20} />
+                Save (Alt + S)
+              </>
+            )}
           </Button>
         </div>
       </div>
 
       {/* Default options */}
-      <div className="w-full light-border rounded-lg flex items-start p-4 gap-8 mb-6">
+      <div className="w-full light-border rounded-lg flex items-start p-4 gap-8 mb-6 relative z-2">
         <div>
           <p className="whitespace-nowrap mb-2 text-xs font-regular text-black relative">
             SELECT DISTRIBUTOR
@@ -149,6 +158,9 @@ const AddPurchaseOrder = () => {
           <div className="relative">
             <Input
               placeholder="Invoice Number"
+              className={`w-64 ${
+                invoiceError ? 'border-danger focus:border-danger' : ''
+              }`}
               value={purchaseInfo.invoiceNo}
               onChange={(e) => {
                 setPurchaseInfo({
@@ -159,7 +171,15 @@ const AddPurchaseOrder = () => {
               error={invoiceError || undefined}
               required
             />
+            {isCheckingInvoice && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
           </div>
+          {invoiceError && (
+            <p className="text-danger text-xs mt-1 max-w-64">{invoiceError}</p>
+          )}
         </div>
 
         <div>
@@ -221,7 +241,7 @@ const AddPurchaseOrder = () => {
       {/* Add Medicine component */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="space-y-6 relative z-1"
         style={{ height: 'calc(100% - 260px)' }}
       >
         <MedicineListManager

@@ -4,13 +4,7 @@ import { MdCheckCircle, MdError } from 'react-icons/md';
 import { Modal } from '@/components/ui/modal';
 import FileUpload from '@/components/ui/file-upload';
 import { parseImportFile } from '@/lib/fileParser';
-import { TMedicine } from '@/types/medicine';
-
-interface ImportMedicinesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onImport: (medicines: TMedicine[]) => void;
-}
+import { TMedicine, ImportMedicinesModalProps } from '@/types/purchases';
 
 interface ImportResult {
   success: boolean;

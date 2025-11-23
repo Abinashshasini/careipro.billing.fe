@@ -1,4 +1,4 @@
-import { TMedicine, TMedicineFormData } from '@/types/medicine';
+import { TMedicine, TMedicineFormData } from '@/types/purchases';
 
 export interface ValidationError {
   field: keyof TMedicineFormData;

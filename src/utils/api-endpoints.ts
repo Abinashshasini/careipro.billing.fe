@@ -6,3 +6,4 @@ export const GET_DISTRIBUTORS = `${BILLING_DASHBOARD_URL}/get-distributors`;
 export const ADD_DISTRIBUTOR = `${BILLING_DASHBOARD_URL}/add-distributor`;
 
 export const CHECK_DUPLICATE_INVOICE = `${BILLING_PURCHASE_URL}/check-duplicate-invoice`;
+export const CREATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/create-purchase-order`;

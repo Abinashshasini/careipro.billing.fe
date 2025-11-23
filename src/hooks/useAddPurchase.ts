@@ -3,54 +3,23 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import debounce from 'debounce';
 import toast from 'react-hot-toast';
 import apiClient from '@/lib/apiClient';
-import { CHECK_DUPLICATE_INVOICE } from '@/utils/api-endpoints';
-import { TDistributor } from '@/types/purchases';
-import { TMedicine } from '@/types/medicine';
+import {
+  CHECK_DUPLICATE_INVOICE,
+  CREATE_PURCHASE_ORDER,
+} from '@/utils/api-endpoints';
+import {
+  TDistributor,
+  TMedicine,
+  DuplicateInvoiceCheckParams,
+  DuplicateInvoiceResponse,
+  PurchaseData,
+  SavePurchaseResponse,
+  ApiError,
+  TPurchaseInfo,
+  UseAddPurchaseReturn,
+  PurchaseTotals,
+} from '@/types/purchases';
 import { isRowComplete } from '@/lib/medicineValidation';
-
-interface DuplicateInvoiceCheckParams {
-  invoice_no: string;
-  distributor_id: string;
-}
-
-interface DuplicateInvoiceResponse {
-  message: string;
-  data: {
-    isInvoiceAvailable: boolean;
-  };
-}
-
-type TPurchaseInfo = {
-  selectedDistributor: string;
-  distributorName: string;
-  invoiceNo: string;
-  invoiceDate: Date | null;
-  paymentDueDate: Date | null;
-};
-
-interface UseAddPurchaseReturn {
-  purchaseInfo: TPurchaseInfo;
-  setPurchaseInfo: React.Dispatch<React.SetStateAction<TPurchaseInfo>>;
-  medicines: TMedicine[];
-  setMedicines: React.Dispatch<React.SetStateAction<TMedicine[]>>;
-  showImportModal: boolean;
-  setShowImportModal: React.Dispatch<React.SetStateAction<boolean>>;
-  distributors: TDistributor[];
-  distributorsLoading: boolean;
-  invoiceError: string | null;
-  handleMedicinesChange: (updatedMedicines: TMedicine[]) => void;
-  handleImportMedicines: (importedMedicines: TMedicine[]) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  validateDateOrder: (
-    invoiceDate: Date | null,
-    dueDate: Date | null,
-  ) => boolean;
-  calculateTotals: (medicineList: TMedicine[]) => {
-    totalAmount: number;
-    totalItems: number;
-    totalQuantity: number;
-  };
-}
 
 const useAddPurchase = (): UseAddPurchaseReturn => {
   const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
@@ -71,12 +40,43 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     return data.data.distributors;
   };
 
+  const handleSaveMedicinesPurchase = async (
+    purchaseData: PurchaseData,
+  ): Promise<SavePurchaseResponse> => {
+    const response = await apiClient.post(CREATE_PURCHASE_ORDER, purchaseData);
+    return response.data;
+  };
+
   const { data: distributorsData, isLoading: distributorsLoading } = useQuery<
     TDistributor[]
   >({
     queryKey: ['distributors'],
     queryFn: handleFetchDistributors,
     staleTime: 1000 * 60 * 5,
+  });
+
+  // Save purchase mutation
+  const savePurchaseMutation = useMutation({
+    mutationFn: handleSaveMedicinesPurchase,
+    onSuccess: (data) => {
+      toast.success(data.message || 'Purchase saved successfully!');
+      // Reset form after successful save
+      setPurchaseInfo({
+        selectedDistributor: '',
+        distributorName: '',
+        invoiceNo: '',
+        invoiceDate: new Date(),
+        paymentDueDate: new Date(),
+      });
+      setMedicines([]);
+      setInvoiceError(null);
+    },
+    onError: (error: ApiError) => {
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to save purchase. Please try again.',
+      );
+    },
   });
 
   const checkMutation = useMutation({
@@ -98,7 +98,6 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     },
   });
 
-  // Store mutation reference in ref to prevent recreating debounce function
   const mutationRef = useRef(checkMutation.mutate);
   mutationRef.current = checkMutation.mutate;
 
@@ -107,7 +106,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
       mutationRef.current(params);
     };
     return debounce(checkInvoice, 500);
-  }, []); // Empty dependency array is safe now with useRef
+  }, []);
 
   useEffect(() => {
     if (purchaseInfo.invoiceNo && purchaseInfo.selectedDistributor) {
@@ -157,7 +156,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     return true;
   };
 
-  const calculateTotals = (medicineList: TMedicine[]) => {
+  const calculateTotals = (medicineList: TMedicine[]): PurchaseTotals => {
     return medicineList.reduce(
       (acc, medicine) => {
         const packParts = medicine.pack.split('×').map((p) => parseInt(p, 10));
@@ -199,6 +198,10 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     }
     if (!purchaseInfo.invoiceNo.trim()) {
       toast.error('Please enter an invoice number.');
+      return;
+    }
+    if (invoiceError) {
+      toast.error('Please resolve invoice number issue before submitting.');
       return;
     }
     if (!purchaseInfo.invoiceDate) {
@@ -266,7 +269,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
         expiry: `20${medicine.expiryYY}-${medicine.expiryMM.padStart(
           2,
           '0',
-        )}-01`,
+        )}-01`, // Format: YYYY-MM-DD (first day of month)
         qty: Number(medicine.qty || 0),
         free: Number(medicine.free || 0),
         rate: Number(medicine.rate || 0),
@@ -288,10 +291,8 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
       medicines: transformedMedicines,
     };
 
-    console.log('Purchase Data:', purchaseData);
-    toast.success(
-      `Purchase saved successfully with ${validMedicines.length} medicine(s)!`,
-    );
+    // Call the API to save purchase
+    savePurchaseMutation.mutate(purchaseData);
   };
 
   return {
@@ -303,6 +304,8 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     setShowImportModal,
     distributors: distributorsData || [],
     distributorsLoading,
+    isCheckingInvoice: checkMutation.isPending,
+    isSubmitting: savePurchaseMutation.isPending,
     invoiceError,
     handleMedicinesChange,
     handleImportMedicines,

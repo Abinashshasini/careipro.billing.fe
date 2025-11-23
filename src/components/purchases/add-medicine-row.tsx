@@ -3,19 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/tooltip';
-import { TMedicine, TMedicineFormData } from '@/types/medicine';
+import {
+  TMedicine,
+  TMedicineFormData,
+  AddMedicineRowProps,
+} from '@/types/purchases';
 import { getFieldError, isRowComplete } from '@/lib/medicineValidation';
 import './styles/add-purchase-row.css';
 
 const GST_RATE = 0.05;
-
-interface AddMedicineRowProps {
-  medicine: TMedicine;
-  onUpdate: (id: string, data: TMedicineFormData) => void;
-  onDelete: (id: string) => void;
-  isLast: boolean;
-  onAddNew: () => void;
-}
 
 const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
   medicine,
@@ -26,6 +22,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
 }) => {
   const [form, setForm] = useState<TMedicineFormData>({
     productName: medicine.productName,
+    hsn: medicine.hsn,
     batch: medicine.batch,
     expiryMM: medicine.expiryMM,
     expiryYY: medicine.expiryYY,
