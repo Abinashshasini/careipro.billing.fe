@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import Popover from '@/components/ui/popover';
 
 export type SortOption =
   | 'lastAddedFirst'
@@ -25,33 +25,6 @@ const SortFilter: React.FC<SortFilterProps> = ({
   onClose,
   onSelect,
 }) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleOutside = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (ref.current && !ref.current.contains(target)) {
-        onClose();
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    document.addEventListener('mousedown', handleOutside, true);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutside, true);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const options: { key: SortOption; label: string }[] = [
     { key: 'lastAddedFirst', label: 'Last Added First' },
     { key: 'lastTxnAtoZ', label: 'Last Txn - A to Z' },
@@ -63,11 +36,14 @@ const SortFilter: React.FC<SortFilterProps> = ({
   ];
 
   return (
-    <div
-      ref={ref}
-      className="absolute z-50 mt-2 right-0 bg-white border border-border rounded shadow-lg p-3 w-56 text-sm font-medium"
+    <Popover
+      isOpen={isOpen}
+      onClose={onClose}
+      position="bottom-left"
+      minWidth="14rem"
+      className="p-3"
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col text-sm font-medium">
         {options.map((opt) => (
           <button
             key={opt.key || 'none'}
@@ -75,7 +51,7 @@ const SortFilter: React.FC<SortFilterProps> = ({
               onSelect(opt.key);
               onClose();
             }}
-            className={`text-left px-3 py-2 rounded hover:bg-gray-100 ${
+            className={`text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors ${
               selected === opt.key ? 'bg-gray-100 font-semibold' : ''
             }`}
           >
@@ -83,7 +59,7 @@ const SortFilter: React.FC<SortFilterProps> = ({
           </button>
         ))}
       </div>
-    </div>
+    </Popover>
   );
 };
 

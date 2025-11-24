@@ -27,18 +27,30 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [showSortFilter, setShowSortFilter] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
   const [selectedSort, setSelectedSort] = useState<SortOption | null>(null);
+  const [isNewDistributorAdded, setIsNewDistributorAdded] =
+    useState<boolean>(false);
 
   /** API call */
   const fetchData = async (): Promise<TDistributor[]> => {
     const { data } = await apiClient.get<{
       data: { distributors: TDistributor[] };
-    }>(GET_DISTRIBUTORS);
+    }>(GET_DISTRIBUTORS, {
+      params: { sortBy: selectedSort, dateFrom, dateTo },
+    });
     return data.data.distributors;
   };
 
   const { data, isLoading } = useQuery<TDistributor[]>({
-    queryKey: ['distributors'],
+    queryKey: [
+      'distributors',
+      selectedSort,
+      dateFrom,
+      dateTo,
+      isNewDistributorAdded,
+    ],
     queryFn: fetchData,
     staleTime: 1000 * 60 * 5,
   });
@@ -56,6 +68,21 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
     router.replace(`/dashboard/purchases?distributorId=${distributorId}`);
   };
 
+  /** Function to handle distributor description */
+  const handleDistributorDescription = (distributor: TDistributor) => {
+    const lastInvoiceDate = distributor.last_invoice_date
+      ? new Date(distributor.last_invoice_date).toLocaleDateString()
+      : 'NA';
+    const lastInvoiceNo = distributor.last_invoice_no ?? 'NA';
+    return `Last Txn: ${lastInvoiceDate} | Invoice No: ${lastInvoiceNo}`;
+  };
+
+  /** Function to open distributor modal */
+  const handleOpenAddDistributorModal = () => {
+    setOpenAddDistributorModal(true);
+    setIsNewDistributorAdded(false);
+  };
+
   return (
     <div className="h-full">
       {/* Header */}
@@ -68,7 +95,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
         </div>
         <div
           className="flex items-center px-4 py-2 bg-primary text-white rounded-lg cursor-pointer hover:opacity-90 transition"
-          onClick={() => setOpenAddDistributorModal(true)}
+          onClick={handleOpenAddDistributorModal}
         >
           <FaRegAddressBook className="mr-2" />
           Add Distributors
@@ -97,7 +124,11 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
           <DateRangeFilter
             isOpen={showDateFilter}
             onClose={() => setShowDateFilter(false)}
-            onApply={() => {}}
+            onApply={(dateFrom, dateTo) => {
+              setDateFrom(dateFrom);
+              setDateTo(dateTo);
+            }}
+            title="Sort by purchase date"
           />
         </div>
         <div className="relative">
@@ -141,8 +172,8 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
             <DistributorOrInvoiceList
               key={element._id}
               title={`${element.distributor_name} | (${element.gst_number})`}
-              date={`Last Txn: ${element.last_invoice_date || 'NA'}`}
-              amount={Number(element.last_invoice_amount) || 0}
+              description={handleDistributorDescription(element)}
+              amount={Number(element.current_balance) || 0}
               seleceted={selectedDistributorId === element._id}
               onClick={() => handleSelectDistributor(element._id)}
             />
@@ -169,6 +200,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
         <AddDistributorModal
           isOpen={openAddDistributorModal}
           onClose={() => setOpenAddDistributorModal(false)}
+          onAddSuccess={() => setIsNewDistributorAdded(true)}
         />
       </div>
     </div>

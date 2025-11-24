@@ -10,15 +10,13 @@ export type TSupplier = {
 
 export type TDistributorSummary = {
   distributor: TDistributor;
-  purchaseOrders: Array<PurchaseData>;
+  purchaseOrders: Array<PurchaseOrder>;
   purchaseSummary: {
     last_invoice: string | null;
     last_invoice_date: string | null;
-    paid_amount: number;
-    partial_amount: number;
     pending_amount: number;
     total_amount: number;
-    total_orders: number;
+    pending_amount_color?: string;
   };
 };
 
@@ -29,7 +27,9 @@ export type TDistributor = {
   gst_number: string;
   state: string;
   drug_license_number?: string | null;
-  opening_balance?: number | null;
+  last_invoice_date?: Date | null;
+  last_invoice_no?: number | null;
+  current_balance?: number | null;
 };
 
 export type DistributorOption = {
@@ -48,7 +48,7 @@ export interface DistributorListWraperProps {
 
 export interface DistributorOrInvoiceListProps {
   title: string;
-  date: string;
+  description: string;
   seleceted: boolean;
   amount?: number | string;
   onClick?: () => void;
@@ -57,6 +57,7 @@ export interface DistributorOrInvoiceListProps {
 export interface AddDistributorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddSuccess: () => void;
 }
 
 export type TMedicine = {
@@ -127,6 +128,20 @@ export interface PurchaseData {
   total_amount: number;
   total_item_count: number;
   medicines: TransformedMedicine[];
+}
+
+export interface PurchaseOrder {
+  _id: string;
+  clinic_id: string;
+  distributor_id: string;
+  invoice_no: string;
+  invoice_date: string;
+  payment_due_date: string;
+  payment_status: string;
+  total_amount: number;
+  total_item_count: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PurchaseTotals {

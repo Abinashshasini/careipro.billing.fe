@@ -1,15 +1,54 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { TDistributorSummary } from '@/types/purchases';
 import moment from 'moment';
 import { MdEditSquare } from 'react-icons/md';
+import DistributorOptionsDropdown from './distributor-options-dropdown';
+import ConfirmationModal from '@/components/ui/confirmation-modal';
 
 interface DistributorDetailsProps {
   data: TDistributorSummary;
+  isDemo: boolean;
 }
 
-const DistributorDetails: React.FC<DistributorDetailsProps> = ({ data }) => {
+const DistributorDetails: React.FC<DistributorDetailsProps> = ({
+  data,
+  isDemo,
+}) => {
   const { distributor, purchaseSummary } = data;
+  const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleEdit = () => {
+    console.log('Edit distributor:', distributor._id);
+    // TODO: Implement edit functionality
+  };
+
+  const handleDelete = () => {
+    setShowDeleteConfirmation(true);
+    setShowOptionsDropdown(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // TODO: Implement actual delete API call
+      console.log('Deleting distributor:', distributor._id);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // TODO: Add success toast and refresh data
+      console.log('Distributor deleted successfully');
+    } catch (error) {
+      console.error('Error deleting distributor:', error);
+      // TODO: Add error toast
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirmation(false);
+    }
+  };
 
   return (
     <div className="flex gap-4">
@@ -28,8 +67,23 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({ data }) => {
           {distributor.gst_number && (
             <span>&nbsp;({distributor.gst_number})</span>
           )}
-          <div className="flex items-center text-xs text-danger gap-0.5 cursor-pointer hover:opacity-80 transition ml-2">
-            <MdEditSquare /> More Options
+          <div
+            className={`relative ml-2 flex items-center ${
+              isDemo ? 'pointer-events-none' : ''
+            }`}
+          >
+            <div
+              className="flex items-center text-xs text-danger gap-0.5 cursor-pointer hover:opacity-80 transition"
+              onClick={() => setShowOptionsDropdown(!showOptionsDropdown)}
+            >
+              <MdEditSquare /> More Options
+            </div>
+            <DistributorOptionsDropdown
+              isOpen={showOptionsDropdown}
+              onClose={() => setShowOptionsDropdown(false)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
 
@@ -57,18 +111,35 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({ data }) => {
               {purchaseSummary.last_invoice || '-'}
             </span>
             <span className=" text-black font-bold">
-              {moment(purchaseSummary.last_invoice_date).format('MMM Do YY') ||
-                '-'}
+              {purchaseSummary.last_invoice_date
+                ? moment(purchaseSummary.last_invoice_date).format('MMM Do YY')
+                : '-'}
             </span>
-            <span className="font-bold  text-danger">
-              ₹{purchaseSummary.pending_amount || '-'}
+            <span
+              className="font-bold "
+              style={{ color: purchaseSummary.pending_amount_color }}
+            >
+              ₹{purchaseSummary.pending_amount.toFixed(2) || 0}
             </span>
             <span className="font-medium  text-success">
-              ₹{purchaseSummary.total_amount || '-'}
+              ₹{purchaseSummary.total_amount.toFixed(2) || 0}
             </span>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Distributor"
+        message={`Are you sure you want to delete "${distributor.distributor_name}"? This action cannot be undone and will remove all associated data.`}
+        confirmText="Yes, Delete"
+        cancelText="Not Sure"
+        confirmVariant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

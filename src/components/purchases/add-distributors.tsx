@@ -36,6 +36,7 @@ import { AddDistributorModalProps } from '@/types/purchases';
 export default function AddDistributorModal({
   isOpen,
   onClose,
+  onAddSuccess,
 }: AddDistributorModalProps) {
   const {
     register,
@@ -64,6 +65,7 @@ export default function AddDistributorModal({
     },
     onSuccess: () => {
       reset();
+      onAddSuccess();
     },
     onError: (error) => {
       console.error('Add distributor error:', error);
@@ -125,7 +127,7 @@ export default function AddDistributorModal({
           />
 
           <Input
-            label="Drug Licence (optional)"
+            label="Drug Licence"
             placeholder="Drug Licence Number"
             error={errors.drug_license_number?.message}
             {...register('drug_license_number')}

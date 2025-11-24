@@ -1,54 +1,40 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Button } from '@/components/ui/button';
+import Popover from '@/components/ui/popover';
 
 interface DateRangeFilterProps {
   isOpen: boolean;
+  title?: string;
   onClose: () => void;
   onApply: (from: Date | null, to: Date | null) => void;
 }
 
 const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
+  title,
   isOpen,
   onClose,
   onApply,
 }) => {
-  const [range, setRange] = useState<[Date | null, Date | null]>([null, null]);
+  const [range, setRange] = useState<[Date | null, Date | null]>([
+    new Date(),
+    null,
+  ]);
   const [startDate, endDate] = range;
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  /** Add outside-click (mousedown/touchstart capture) and Escape key handling */
-  const handleOutside = (e: MouseEvent | TouchEvent) => {
-    const target = e.target as Node;
-    if (ref.current && !ref.current.contains(target)) {
-      onClose();
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-
-  useEffect(() => {
-    if (!isOpen) return;
-    document.addEventListener('mousedown', handleOutside, true);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutside, true);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
 
   return (
-    <div
-      ref={ref}
-      className="absolute z-50 mt-2 bg-white border border-border rounded shadow-lg p-3"
+    <Popover
+      isOpen={isOpen}
+      onClose={onClose}
+      position="bottom-left"
+      minWidth="18rem"
+      className="p-3"
     >
+      {title && (
+        <p className="text-sm text-black font-semibold mb-3">{title}</p>
+      )}
       <div>
         <DatePicker
           selected={startDate}
@@ -83,7 +69,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             className="px-3 py-1 ml-auto"
             onClick={() => {
               if (startDate && !endDate) {
-                onApply(startDate, startDate);
+                onApply(startDate, null);
               } else if (startDate && endDate) {
                 onApply(startDate, endDate);
               } else {
@@ -96,7 +82,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           </Button>
         </div>
       </div>
-    </div>
+    </Popover>
   );
 };
 

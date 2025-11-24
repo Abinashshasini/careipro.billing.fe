@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { GET_DISTRIBUTOR_BYID } from '@/utils/api-endpoints';
 import DistributorDetails from './distributor-details';
 import DistributorInfoShimmer from '@/components/shimmers/distributor-info-shimmer';
+import PurchaseOrdersTable from './purchase-orders-table';
 
 interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
@@ -22,16 +23,15 @@ const DEMO_DISTRIBUTOR: TDistributorSummary = {
     gst_number: '29DEMO1234L1ZW',
     state: 'Maharashtra',
     mobile_number: '9876543210',
+    drug_license_number: 'MD12345678',
   },
   purchaseOrders: [],
   purchaseSummary: {
-    last_invoice: null,
-    last_invoice_date: null,
-    paid_amount: 0,
-    partial_amount: 0,
-    pending_amount: 0,
-    total_amount: 0,
-    total_orders: 0,
+    last_invoice: '12345',
+    last_invoice_date: 'Jan 1 2025',
+    pending_amount: 10000,
+    total_amount: 10000,
+    pending_amount_color: '#8AA624',
   },
 };
 
@@ -63,7 +63,7 @@ const InvoiceDetailsWrapper = ({
   // Determine what to render based on state
   const renderDistributorInfo = () => {
     if (!hasDistributorId) {
-      return <DistributorDetails data={DEMO_DISTRIBUTOR} />;
+      return <DistributorDetails data={DEMO_DISTRIBUTOR} isDemo />;
     }
 
     if (isLoading) {
@@ -71,10 +71,14 @@ const InvoiceDetailsWrapper = ({
     }
 
     if (data) {
-      return <DistributorDetails data={data} />;
+      return (
+        <div>
+          <DistributorDetails data={data} isDemo={false} />
+        </div>
+      );
     }
 
-    return <DistributorDetails data={DEMO_DISTRIBUTOR} />;
+    return <DistributorDetails data={DEMO_DISTRIBUTOR} isDemo />;
   };
 
   return (
@@ -99,6 +103,9 @@ const InvoiceDetailsWrapper = ({
       <div className="p-4 border-b-1 border-border pt-2">
         {renderDistributorInfo()}
       </div>
+      {data && data.purchaseOrders && data.purchaseOrders.length > 0 && (
+        <PurchaseOrdersTable purchaseOrders={data.purchaseOrders} />
+      )}
     </div>
   );
 };
