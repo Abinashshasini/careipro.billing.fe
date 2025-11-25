@@ -13,25 +13,23 @@ import { DistributorShimmer } from '@/components/shimmers/distributor-shimmer';
 import DistributorOrInvoiceList from './distributor-or-invoice-list';
 import DateRangeFilter from './date-range-filter';
 import SortFilter, { SortOption } from './sort-filter';
-import AddDistributorModal from './add-distributors';
 import { useRouter } from 'next/navigation';
 import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
 
 const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   selectedDistributorId,
   setSelectedDistributorId,
+  refreshDistributorList,
+  openDistributorModal,
 }) => {
   const router = useRouter();
   /** Required states and  */
   const [query, setQuery] = useState('');
-  const [openAddDistributorModal, setOpenAddDistributorModal] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [showSortFilter, setShowSortFilter] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [selectedSort, setSelectedSort] = useState<SortOption | null>(null);
-  const [isNewDistributorAdded, setIsNewDistributorAdded] =
-    useState<boolean>(false);
 
   /** API call */
   const fetchData = async (): Promise<TDistributor[]> => {
@@ -49,7 +47,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
       selectedSort,
       dateFrom,
       dateTo,
-      isNewDistributorAdded,
+      refreshDistributorList,
     ],
     queryFn: fetchData,
     staleTime: 1000 * 60 * 5,
@@ -79,8 +77,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
 
   /** Function to open distributor modal */
   const handleOpenAddDistributorModal = () => {
-    setOpenAddDistributorModal(true);
-    setIsNewDistributorAdded(false);
+    openDistributorModal();
   };
 
   return (
@@ -185,9 +182,9 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               No Distributors Available
             </h3>
             <p className="text-sm text-gray-500 mb-6 text-center">
-              Get started by adding a distributor to manage purchases{' '}
+              Add a distributor to manage purchases{' '}
               <span
-                onClick={() => setOpenAddDistributorModal(true)}
+                onClick={() => openDistributorModal()}
                 className="underline text-sm text-gray-500 cursor-pointer"
               >
                 add distributor
@@ -195,13 +192,6 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
             </p>
           </div>
         )}
-
-        {/* Add distributor modal  */}
-        <AddDistributorModal
-          isOpen={openAddDistributorModal}
-          onClose={() => setOpenAddDistributorModal(false)}
-          onAddSuccess={() => setIsNewDistributorAdded(true)}
-        />
       </div>
     </div>
   );

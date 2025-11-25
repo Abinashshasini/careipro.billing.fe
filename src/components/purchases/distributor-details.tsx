@@ -9,11 +9,13 @@ import ConfirmationModal from '@/components/ui/confirmation-modal';
 interface DistributorDetailsProps {
   data: TDistributorSummary;
   isDemo: boolean;
+  onEdit?: () => void;
 }
 
 const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   data,
   isDemo,
+  onEdit,
 }) => {
   const { distributor, purchaseSummary } = data;
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
@@ -21,8 +23,9 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
-    console.log('Edit distributor:', distributor._id);
-    // TODO: Implement edit functionality
+    if (typeof onEdit === 'function') {
+      onEdit();
+    }
   };
 
   const handleDelete = () => {

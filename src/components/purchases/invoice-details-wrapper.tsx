@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { IoMdAdd } from 'react-icons/io';
 import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
-import { TDistributorSummary } from '@/types/purchases';
+import { TDistributor, TDistributorSummary } from '@/types/purchases';
 import { useQuery } from '@tanstack/react-query';
 import { GET_DISTRIBUTOR_BYID } from '@/utils/api-endpoints';
 import DistributorDetails from './distributor-details';
@@ -13,6 +13,8 @@ import PurchaseOrdersTable from './purchase-orders-table';
 
 interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
+  refreshDistributorList?: number;
+  onEditDistributor?: (distributorData: TDistributor) => void;
 }
 
 // Demo distributor data to show when no distributor is selected
@@ -37,10 +39,18 @@ const DEMO_DISTRIBUTOR: TDistributorSummary = {
 
 const InvoiceDetailsWrapper = ({
   selectedDistributorId,
+  refreshDistributorList,
+  onEditDistributor,
 }: InvoiceDetailsWrapperProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const distributorId = searchParams.get('distributorId');
+
+  const handleEditDistributor = (_params: TDistributor) => {
+    if (onEditDistributor) {
+      onEditDistributor(_params);
+    }
+  };
 
   // Check if we have a distributor ID to fetch
   const hasDistributorId = Boolean(selectedDistributorId || distributorId);
@@ -53,14 +63,27 @@ const InvoiceDetailsWrapper = ({
     return data.data;
   };
 
-  const { data, isLoading } = useQuery<TDistributorSummary>({
-    queryKey: [`${selectedDistributorId || distributorId}-distributor`],
+  const { data, isLoading, refetch } = useQuery<TDistributorSummary>({
+    queryKey: [
+      `${selectedDistributorId || distributorId}-distributor`,
+      refreshDistributorList,
+    ],
     queryFn: fetchData,
     staleTime: 1000 * 60 * 5,
     enabled: hasDistributorId,
   });
 
-  // Determine what to render based on state
+  // Refetch when refreshDistributorList changes and is greater than 0
+  React.useEffect(() => {
+    if (
+      refreshDistributorList &&
+      refreshDistributorList > 0 &&
+      hasDistributorId
+    ) {
+      refetch();
+    }
+  }, [refreshDistributorList, refetch, hasDistributorId]);
+
   const renderDistributorInfo = () => {
     if (!hasDistributorId) {
       return <DistributorDetails data={DEMO_DISTRIBUTOR} isDemo />;
@@ -73,7 +96,11 @@ const InvoiceDetailsWrapper = ({
     if (data) {
       return (
         <div>
-          <DistributorDetails data={data} isDemo={false} />
+          <DistributorDetails
+            data={data}
+            isDemo={false}
+            onEdit={() => handleEditDistributor(data.distributor)}
+          />
         </div>
       );
     }

@@ -26,10 +26,14 @@ export type TDistributor = {
   mobile_number: string;
   gst_number: string;
   state: string;
+  email_id?: string | null;
+  address?: string | null;
+  district?: string | null;
   drug_license_number?: string | null;
   last_invoice_date?: Date | null;
   last_invoice_no?: number | null;
   current_balance?: number | null;
+  opening_balance?: number | null;
 };
 
 export type DistributorOption = {
@@ -44,6 +48,8 @@ export type DistributorListProps = {
 export interface DistributorListWraperProps {
   selectedDistributorId: string | null;
   setSelectedDistributorId: React.Dispatch<React.SetStateAction<string | null>>;
+  refreshDistributorList: number;
+  openDistributorModal: () => void;
 }
 
 export interface DistributorOrInvoiceListProps {
@@ -57,7 +63,9 @@ export interface DistributorOrInvoiceListProps {
 export interface AddDistributorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddSuccess: () => void;
+  onSuccess: () => void;
+  editData?: TDistributor | null;
+  isEditMode?: boolean;
 }
 
 export type TMedicine = {

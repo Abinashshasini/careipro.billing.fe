@@ -1,16 +1,16 @@
 'use client';
+import React, { useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import Success from '@/components/ui/success';
 import apiClient from '@/lib/apiClient';
-import { ADD_DISTRIBUTOR } from '@/utils/api-endpoints';
+import { ADD_DISTRIBUTOR, UPDATE_DISTRIBUTOR } from '@/utils/api-endpoints';
 
 const DistributorSchema = z.object({
   distributor_name: z.string().min(2, 'Distributor name is required'),
@@ -36,12 +36,15 @@ import { AddDistributorModalProps } from '@/types/purchases';
 export default function AddDistributorModal({
   isOpen,
   onClose,
-  onAddSuccess,
+  onSuccess,
+  editData = null,
+  isEditMode = false,
 }: AddDistributorModalProps) {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<DistributorForm>({
     resolver: zodResolver(DistributorSchema),
@@ -58,22 +61,46 @@ export default function AddDistributorModal({
     },
   });
 
-  const addDistributorMutation = useMutation({
+  useEffect(() => {
+    if (isEditMode && editData && isOpen) {
+      setValue('distributor_name', editData.distributor_name || '');
+      setValue('state', editData.state || '');
+      setValue('district', editData.district || '');
+      setValue('mobile_number', editData.mobile_number || '');
+      setValue('email_id', editData.email_id || '');
+      setValue('gst_number', editData.gst_number || '');
+      setValue('drug_license_number', editData.drug_license_number || '');
+      setValue('address', editData.address || '');
+      setValue('opening_balance', editData.opening_balance || undefined);
+    } else if (!isEditMode && isOpen) {
+      reset();
+    }
+  }, [isEditMode, editData, isOpen, setValue, reset]);
+
+  const distributorMutation = useMutation({
     mutationFn: async (data: DistributorForm) => {
-      const response = await apiClient.post(ADD_DISTRIBUTOR, data);
-      return response.data;
+      if (isEditMode && editData?._id) {
+        const response = await apiClient.put(
+          `${UPDATE_DISTRIBUTOR}/${editData._id}`,
+          data,
+        );
+        return response.data;
+      } else {
+        const response = await apiClient.post(ADD_DISTRIBUTOR, data);
+        return response.data;
+      }
     },
     onSuccess: () => {
       reset();
-      onAddSuccess();
+      onSuccess();
     },
     onError: (error) => {
-      console.error('Add distributor error:', error);
+      console.error('Distributor operation error:', error);
     },
   });
 
   const onSubmit = (data: DistributorForm) => {
-    addDistributorMutation.mutate(data);
+    distributorMutation.mutate(data);
   };
 
   return (
@@ -81,15 +108,15 @@ export default function AddDistributorModal({
       isOpen={isOpen}
       onClose={() => {
         onClose();
-        addDistributorMutation.reset();
+        distributorMutation.reset();
       }}
-      title={'Add Distributor'}
+      title={isEditMode ? 'Edit Distributor' : 'Add Distributor'}
       backdropEnabled={true}
       className="max-w-3xl"
     >
-      {addDistributorMutation.isSuccess ? (
+      {distributorMutation.isSuccess ? (
         <Success
-          text={addDistributorMutation.data.message}
+          text={distributorMutation.data.message}
           className="py-12"
           iconSize={{ width: 100, height: 100 }}
         />
@@ -175,9 +202,9 @@ export default function AddDistributorModal({
               type="submit"
               variant="default"
               className="w-full mt-4"
-              disabled={addDistributorMutation.isPending}
+              disabled={distributorMutation.isPending}
             >
-              Save Distributor
+              {isEditMode ? 'Update Distributor' : 'Save Distributor'}
             </Button>
           </div>
         </form>
