@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 /** components */
 import InvoiceDetailsWrapper from '@/components/purchases/invoice-details-wrapper';
@@ -8,6 +9,7 @@ import AddDistributorModal from '@/components/purchases/add-distributor';
 import { TDistributor } from '@/types/purchases';
 
 const PurchaseContainer = () => {
+  const router = useRouter();
   const [selectedDistributorId, setSelectedDistributorId] = useState<
     string | null
   >(null);
@@ -35,6 +37,13 @@ const PurchaseContainer = () => {
     setRefreshDistributorList(0);
   };
 
+  /** Handle delete success */
+  const handleDeleteSuccess = () => {
+    setRefreshDistributorList(Date.now());
+    setSelectedDistributorId(null);
+    router.replace('/dashboard/purchases');
+  };
+
   /** Handle modal close */
   const handleCloseModal = () => {
     setOpenAddDistributorModal(false);
@@ -60,6 +69,7 @@ const PurchaseContainer = () => {
           selectedDistributorId={selectedDistributorId}
           refreshDistributorList={refreshDistributorList}
           onEditDistributor={handleEditDistributor}
+          onDeleteSuccess={handleDeleteSuccess}
         />
       </div>
 

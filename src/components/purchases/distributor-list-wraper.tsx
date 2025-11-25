@@ -36,7 +36,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
     const { data } = await apiClient.get<{
       data: { distributors: TDistributor[] };
     }>(GET_DISTRIBUTORS, {
-      params: { sortBy: selectedSort, dateFrom, dateTo },
+      params: { sortBy: selectedSort, dateFrom, dateTo, status: 'active' },
     });
     return data.data.distributors;
   };

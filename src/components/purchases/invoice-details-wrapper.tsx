@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { IoMdAdd } from 'react-icons/io';
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +15,7 @@ interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
   refreshDistributorList?: number;
   onEditDistributor?: (distributorData: TDistributor) => void;
+  onDeleteSuccess?: () => void;
 }
 
 // Demo distributor data to show when no distributor is selected
@@ -41,6 +42,7 @@ const InvoiceDetailsWrapper = ({
   selectedDistributorId,
   refreshDistributorList,
   onEditDistributor,
+  onDeleteSuccess,
 }: InvoiceDetailsWrapperProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,7 +76,7 @@ const InvoiceDetailsWrapper = ({
   });
 
   // Refetch when refreshDistributorList changes and is greater than 0
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       refreshDistributorList &&
       refreshDistributorList > 0 &&
@@ -100,6 +102,7 @@ const InvoiceDetailsWrapper = ({
             data={data}
             isDemo={false}
             onEdit={() => handleEditDistributor(data.distributor)}
+            onDeleteSuccess={onDeleteSuccess}
           />
         </div>
       );

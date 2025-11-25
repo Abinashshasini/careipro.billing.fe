@@ -2,20 +2,25 @@
 import React, { useState } from 'react';
 import { TDistributorSummary } from '@/types/purchases';
 import moment from 'moment';
+import toast from 'react-hot-toast';
 import { MdEditSquare } from 'react-icons/md';
 import DistributorOptionsDropdown from './distributor-options-dropdown';
 import ConfirmationModal from '@/components/ui/confirmation-modal';
+import apiClient from '@/lib/apiClient';
+import { DELETE_DISTRIBUTOR } from '@/utils/api-endpoints';
 
 interface DistributorDetailsProps {
   data: TDistributorSummary;
   isDemo: boolean;
   onEdit?: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   data,
   isDemo,
   onEdit,
+  onDeleteSuccess,
 }) => {
   const { distributor, purchaseSummary } = data;
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
@@ -36,17 +41,19 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      // TODO: Implement actual delete API call
-      console.log('Deleting distributor:', distributor._id);
+      await apiClient.delete(`${DELETE_DISTRIBUTOR}/${distributor._id}`);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // TODO: Add success toast and refresh data
-      console.log('Distributor deleted successfully');
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
+      toast.success(
+        `"${distributor.distributor_name}" has been deleted successfully.`,
+      );
     } catch (error) {
       console.error('Error deleting distributor:', error);
-      // TODO: Add error toast
+      toast.error(
+        `Failed to delete "${distributor.distributor_name}". Please try again.`,
+      );
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirmation(false);
