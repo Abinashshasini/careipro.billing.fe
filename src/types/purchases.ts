@@ -148,8 +148,10 @@ export interface PurchaseOrder {
   payment_status: string;
   total_amount: number;
   total_item_count: number;
-  createdAt: string;
-  updatedAt: string;
+  payment_summary: {
+    status: string;
+    color: string;
+  };
 }
 
 export interface PurchaseTotals {

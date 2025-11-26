@@ -133,9 +133,8 @@ const InvoiceDetailsWrapper = ({
       <div className="p-4 border-b-1 border-border pt-2">
         {renderDistributorInfo()}
       </div>
-      {data && data.purchaseOrders && data.purchaseOrders.length > 0 && (
-        <PurchaseOrdersTable purchaseOrders={data.purchaseOrders} />
-      )}
+
+      <PurchaseOrdersTable purchaseOrders={data?.purchaseOrders} />
     </div>
   );
 };

@@ -10,3 +10,4 @@ export const DELETE_DISTRIBUTOR = `${BILLING_DASHBOARD_URL}/delete-distributor`;
 
 export const CHECK_DUPLICATE_INVOICE = `${BILLING_PURCHASE_URL}/check-duplicate-invoice`;
 export const CREATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/create-purchase-order`;
+export const DELETE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/delete-purchase-order`;

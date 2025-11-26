@@ -3,11 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/tooltip';
-import {
-  TMedicine,
-  TMedicineFormData,
-  AddMedicineRowProps,
-} from '@/types/purchases';
+import { TMedicineFormData, AddMedicineRowProps } from '@/types/purchases';
 import { getFieldError, isRowComplete } from '@/lib/medicineValidation';
 import './styles/add-purchase-row.css';
 

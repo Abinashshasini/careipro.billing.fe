@@ -29,7 +29,6 @@ const ImportMedicinesModal: React.FC<ImportMedicinesModalProps> = ({
       const result = await parseImportFile(file);
 
       if (result.success && result.data.length > 0) {
-        // Convert TMedicineFormData to TMedicine with IDs
         const newMedicines: TMedicine[] = result.data.map((data) => ({
           ...data,
           id: `medicine_${Date.now()}_${Math.random()
@@ -39,7 +38,6 @@ const ImportMedicinesModal: React.FC<ImportMedicinesModalProps> = ({
           margin: 0,
         }));
 
-        // Call the onImport callback with new medicines
         onImport(newMedicines);
 
         setImportResult({
