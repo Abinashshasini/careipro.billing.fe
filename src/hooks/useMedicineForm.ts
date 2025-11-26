@@ -17,7 +17,7 @@ export const useMedicineForm = (options: UseMedicineFormOptions = {}) => {
   const createEmptyMedicine = useCallback(
     (): TMedicine => ({
       id: generateId(),
-      med_name: '',,
+      med_name: '',
       hsn: '',
       batch: '',
       expiryMM: '',

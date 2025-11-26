@@ -186,11 +186,6 @@ const AddPurchaseOrder = () => {
                 </div>
               )}
             </div>
-            {invoiceError && (
-              <p className="text-danger text-xs mt-1 max-w-64">
-                {invoiceError}
-              </p>
-            )}
           </div>
 
           <div>

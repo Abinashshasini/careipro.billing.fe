@@ -91,7 +91,8 @@ export interface TransformedMedicine {
   med_name: string;
   batch: string;
   pack: string;
-  expiry: string;
+  expiry_mm: string | null;
+  expiry_yy: string | null;
   qty: number;
   free: number;
   rate: number;

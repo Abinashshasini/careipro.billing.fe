@@ -21,7 +21,9 @@ import {
 } from '@/types/purchases';
 import { isRowComplete } from '@/lib/medicineValidation';
 
-const useAddPurchase = (purchaseOrderId: string | null): UseAddPurchaseReturn => {
+const useAddPurchase = (
+  purchaseOrderId: string | null,
+): UseAddPurchaseReturn => {
   const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
     selectedDistributor: '',
     distributorName: '',
@@ -159,7 +161,7 @@ const useAddPurchase = (purchaseOrderId: string | null): UseAddPurchaseReturn =>
   const calculateTotals = (medicineList: TMedicine[]): PurchaseTotals => {
     return medicineList.reduce(
       (acc, medicine) => {
-        const packParts = medicine.pack.split('×').map((p) => parseInt(p, 10));
+        const packParts = medicine.pack.split('*').map((p) => parseInt(p, 10));
         const unitsPerStrip =
           packParts.length === 2 && !isNaN(packParts[0]) && !isNaN(packParts[1])
             ? packParts[0] * packParts[1]
@@ -243,9 +245,9 @@ const useAddPurchase = (purchaseOrderId: string | null): UseAddPurchaseReturn =>
     // Calculate totals
     const totals = calculateTotals(validMedicines);
 
-    // Transform medicines to match API format
+
     const transformedMedicines = validMedicines.map((medicine) => {
-      const packParts = medicine.pack.split('×').map((p) => parseInt(p, 10));
+      const packParts = medicine.pack.split('*').map((p) => parseInt(p, 10));
       const unitsPerStrip =
         packParts.length === 2 && !isNaN(packParts[0]) && !isNaN(packParts[1])
           ? packParts[0] * packParts[1]
@@ -266,10 +268,8 @@ const useAddPurchase = (purchaseOrderId: string | null): UseAddPurchaseReturn =>
         med_name: medicine.med_name,
         batch: medicine.batch,
         pack: medicine.pack,
-        expiry: `20${medicine.expiryYY}-${medicine.expiryMM.padStart(
-          2,
-          '0',
-        )}-01`, // Format: YYYY-MM-DD (first day of month)
+        expiry_mm: medicine.expiryMM || null,
+        expiry_yy: medicine.expiryYY || null, // Format: YYYY-MM-DD (first day of month)
         qty: Number(medicine.qty || 0),
         free: Number(medicine.free || 0),
         rate: Number(medicine.rate || 0),
