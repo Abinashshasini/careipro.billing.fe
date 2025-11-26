@@ -131,7 +131,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
     <div className="flex items-center w-full">
       <div className="h-16 initial" />
       <div
-        className={`med_name input-styles ${
+        className={`productName input-styles ${
           showValidation && getFieldError(form, 'med_name')
             ? 'validation-error'
             : ''
@@ -357,9 +357,16 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
         <span className="px-2 w-full">{margin.toFixed(2)}</span>
         <span>%</span>
       </div>
-      <div className="amount flex items-center px-2 text-sm bg-shade-gray h-10 font-semibold">
-        <span>{amount.toFixed(2)}</span>
-      </div>
+
+      <Tooltip
+        content={amount.toFixed(2)}
+        position="top"
+        disabled={amount.toString().length <= 4}
+      >
+        <div className="amount flex items-center px-2 text-sm bg-shade-gray h-10 font-semibold">
+          <span>{amount.toFixed(2)}</span>
+        </div>
+      </Tooltip>
 
       <div className="select">
         {isLast && (

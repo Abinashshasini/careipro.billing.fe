@@ -109,6 +109,17 @@
 
 .amount {
     margin-right: 10px;
+
+}
+
+.margin,
+.amount>span {
+    width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    cursor: default;
 }
 
 .select {

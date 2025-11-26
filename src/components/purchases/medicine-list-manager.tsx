@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import AddMedicineRow from './add-medicine-row';
-import { TMedicine, MedicineListManagerProps } from '@/types/purchases';
+import { MedicineListManagerProps } from '@/types/purchases';
 import { useMedicineForm } from '@/hooks/useMedicineForm';
 
 const MedicineListManager: React.FC<MedicineListManagerProps> = ({
