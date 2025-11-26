@@ -70,7 +70,7 @@ export interface AddDistributorModalProps {
 
 export type TMedicine = {
   id: string;
-  productName: string;
+  med_name: string;
   hsn: string;
   batch: string;
   expiryMM: string;

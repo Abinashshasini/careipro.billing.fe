@@ -17,7 +17,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
   onAddNew,
 }) => {
   const [form, setForm] = useState<TMedicineFormData>({
-    productName: medicine.productName,
+    med_name: medicine.med_name,
     hsn: medicine.hsn,
     batch: medicine.batch,
     expiryMM: medicine.expiryMM,
@@ -131,23 +131,23 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
     <div className="flex items-center w-full">
       <div className="h-16 initial" />
       <div
-        className={`productName input-styles ${
-          showValidation && getFieldError(form, 'productName')
+        className={`med_name input-styles ${
+          showValidation && getFieldError(form, 'med_name')
             ? 'validation-error'
             : ''
         }`}
       >
         <input
           placeholder="Search Product*"
-          value={form.productName}
-          onChange={(e) => handleChange('productName', e.target.value)}
+          value={form.med_name}
+          onChange={(e) => handleChange('med_name', e.target.value)}
           onKeyDown={handleKeyDown}
-          className={getInputClassName('productName')}
+          className={getInputClassName('med_name')}
           tabIndex={0}
         />
-        {showValidation && getFieldError(form, 'productName') && (
+        {showValidation && getFieldError(form, 'med_name') && (
           <div className="absolute top-full left-0 text-xs text-red-500 mt-1 z-10 bg-white p-1 rounded shadow">
-            {getFieldError(form, 'productName')}
+            {getFieldError(form, 'med_name')}
           </div>
         )}
       </div>

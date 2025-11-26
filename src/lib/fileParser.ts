@@ -232,7 +232,7 @@ const parseMedicineRow = (
   }
 
   return {
-    productName: getColumnValue([
+    med_name: getColumnValue([
       'product',
       'productname',
       'name',

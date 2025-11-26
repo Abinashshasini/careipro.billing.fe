@@ -17,9 +17,9 @@ export const validateMedicine = (
   const errors: ValidationError[] = [];
 
   // Product Name - mandatory
-  if (!medicine.productName || medicine.productName.trim() === '') {
+  if (!medicine.med_name || medicine.med_name.trim() === '') {
     errors.push({
-      field: 'productName',
+      field: 'med_name',
       message: 'Product Name is required',
     });
   }
@@ -174,7 +174,7 @@ export const hasAnyData = (
   medicine: TMedicine | TMedicineFormData,
 ): boolean => {
   return (
-    medicine.productName.trim() !== '' ||
+    medicine.med_name.trim() !== '' ||
     medicine.batch.trim() !== '' ||
     medicine.expiryMM.trim() !== '' ||
     medicine.expiryYY.trim() !== '' ||

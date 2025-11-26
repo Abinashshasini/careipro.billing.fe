@@ -21,7 +21,7 @@ import {
 } from '@/types/purchases';
 import { isRowComplete } from '@/lib/medicineValidation';
 
-const useAddPurchase = (): UseAddPurchaseReturn => {
+const useAddPurchase = (purchaseOrderId: string | null): UseAddPurchaseReturn => {
   const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
     selectedDistributor: '',
     distributorName: '',
@@ -137,7 +137,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
   const handleImportMedicines = (importedMedicines: TMedicine[]) => {
     setMedicines((prev) => {
       const hasOnlyEmptyRow =
-        prev.length === 1 && !prev[0].productName && !prev[0].batch;
+        prev.length === 1 && !prev[0].med_name && !prev[0].batch;
       const newMedicines = hasOnlyEmptyRow
         ? importedMedicines
         : [...prev, ...importedMedicines];
@@ -219,7 +219,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
     const invalidMedicines = medicines.filter(
       (medicine) =>
         !isRowComplete(medicine) &&
-        (medicine.productName.trim() !== '' ||
+        (medicine.med_name.trim() !== '' ||
           medicine.batch.trim() !== '' ||
           (medicine.qty !== '' && Number(medicine.qty) > 0) ||
           (medicine.mrp !== '' && Number(medicine.mrp) > 0) ||
@@ -263,7 +263,7 @@ const useAddPurchase = (): UseAddPurchaseReturn => {
       const margin = Number(medicine.mrp || 0) - Number(medicine.rate || 0);
 
       return {
-        med_name: medicine.productName,
+        med_name: medicine.med_name,
         batch: medicine.batch,
         pack: medicine.pack,
         expiry: `20${medicine.expiryYY}-${medicine.expiryMM.padStart(
