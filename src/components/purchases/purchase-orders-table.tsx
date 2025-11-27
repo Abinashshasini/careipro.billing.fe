@@ -25,8 +25,8 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   const [selectedOrderDetails, setSelectedOrderDetails] =
     useState<PurchaseOrder | null>(null);
 
-  const handleDownload = () => {
-    // :: TODO implement download logic
+  const handleDownload = (event: React.MouseEvent, _params: PurchaseOrder) => {
+    event.stopPropagation();
   };
 
   const handleDeleteClick = (
@@ -56,8 +56,11 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
     }
   };
 
-  const handleRecordPayment = () => {
-    // :: TODO implement record payment logic
+  const handleRecordPayment = (
+    event: React.MouseEvent,
+    _params: PurchaseOrder,
+  ) => {
+    event.stopPropagation();
   };
 
   const handleRedirect = (id?: string) => {
@@ -86,9 +89,9 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   }
 
   return (
-    <div>
+    <div className="h-[calc(100%-223px)] overflow-y-scroll">
       {/* Table Header */}
-      <div className="grid grid-cols-13 bg-gray-50 p-3 border-b border-gray-200 text-xs font-medium text-gray-700 gap-4">
+      <div className="grid grid-cols-13 bg-gray-50 p-3 border-b border-gray-200 text-xs font-medium text-gray-700 gap-4 sticky top-0 z-2">
         <div className="col-span-1">SL NO</div>
         <div className="col-span-2">INVOICE</div>
         <div className="col-span-2">INVOICE DATE</div>
@@ -104,7 +107,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
         {purchaseOrders.map((order, index) => (
           <div
             key={order._id}
-            className={`grid grid-cols-13 p-3 text-sm hover:bg-gray-100 transition-colors gap-4 items-center ${
+            className={`grid grid-cols-13 p-3 text-sm hover:bg-gray-100 transition-colors gap-4 items-center cursor-pointer ${
               index !== purchaseOrders.length - 1
                 ? 'border-b border-gray-100'
                 : ''
@@ -153,7 +156,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
                 {/* Download Button */}
                 <Tooltip content="Download Invoice" position="top">
                   <button
-                    onClick={handleDownload}
+                    onClick={(event) => handleDownload(event, order)}
                     className="p-1.5 text-primary hover:bg-blue-100 rounded-md transition-colors"
                   >
                     <MdDownload size={17} />
@@ -163,7 +166,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
                 {/* Record Payment Button */}
                 <Tooltip content="Record Payment" position="top">
                   <button
-                    onClick={handleRecordPayment}
+                    onClick={(event) => handleRecordPayment(event, order)}
                     className="p-1.5 text-success hover:bg-green-100 rounded-md transition-colors"
                   >
                     <MdPayment size={17} />

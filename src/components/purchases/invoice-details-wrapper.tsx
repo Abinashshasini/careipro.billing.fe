@@ -112,7 +112,7 @@ const InvoiceDetailsWrapper = ({
   };
 
   return (
-    <div>
+    <div className="h-full">
       <div className="flex justify-between items-center p-4">
         <div className="flex items-center gap-4">
           <div>
