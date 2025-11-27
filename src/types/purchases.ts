@@ -173,6 +173,8 @@ export type GetPurchaseDetailsResponse = ApiResponse<{
 export interface MedicineListManagerProps {
   onMedicinesChange: (medicines: TMedicine[]) => void;
   initialMedicines: TMedicine[];
+  isEditMode?: boolean;
+  existingMedicinesCount?: number;
 }
 
 export interface AddMedicineRowProps {
@@ -181,6 +183,7 @@ export interface AddMedicineRowProps {
   onDelete: (id: string) => void;
   isLast: boolean;
   onAddNew: () => void;
+  isReadOnly?: boolean;
 }
 
 export interface ImportMedicinesModalProps {
@@ -218,6 +221,7 @@ export interface UseAddPurchaseReturn {
   setPurchaseInfo: React.Dispatch<React.SetStateAction<TPurchaseInfo>>;
   medicines: TMedicine[];
   setMedicines: React.Dispatch<React.SetStateAction<TMedicine[]>>;
+  originalMedicinesCount: number;
   showImportModal: boolean;
   setShowImportModal: React.Dispatch<React.SetStateAction<boolean>>;
   distributors: TDistributor[];

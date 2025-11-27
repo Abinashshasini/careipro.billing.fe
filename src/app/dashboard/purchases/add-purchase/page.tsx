@@ -26,6 +26,7 @@ const AddPurchaseOrder = () => {
     purchaseInfo,
     setPurchaseInfo,
     medicines,
+    originalMedicinesCount,
     showImportModal,
     setShowImportModal,
     distributors,
@@ -286,6 +287,8 @@ const AddPurchaseOrder = () => {
             <MedicineListManager
               onMedicinesChange={handleMedicinesChange}
               initialMedicines={medicines}
+              isEditMode={!!purchaseOrderId}
+              existingMedicinesCount={originalMedicinesCount}
             />
           </form>
 

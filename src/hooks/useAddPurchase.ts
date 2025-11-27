@@ -8,6 +8,7 @@ import {
   CHECK_DUPLICATE_INVOICE,
   CREATE_PURCHASE_ORDER,
   GET_PURCHASE_DETAILS_BY_ID,
+  UPDATE_PURCHASE_ORDER,
 } from '@/utils/api-endpoints';
 import {
   TDistributor,
@@ -21,6 +22,7 @@ import {
   UseAddPurchaseReturn,
   PurchaseTotals,
   GetPurchaseDetailsResponse,
+  TransformedMedicine,
 } from '@/types/purchases';
 import { isRowComplete } from '@/lib/medicineValidation';
 
@@ -38,6 +40,7 @@ const useAddPurchase = (
     paymentDueDate: new Date(),
   });
   const [medicines, setMedicines] = useState<TMedicine[]>([]);
+  const [originalMedicinesCount, setOriginalMedicinesCount] = useState(0);
   const [showImportModal, setShowImportModal] = useState(false);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
@@ -62,6 +65,17 @@ const useAddPurchase = (
     return response.data;
   };
 
+  const handleUpdatePurchase = async (
+    purchaseOrderId: string,
+    newMedicines: TransformedMedicine[],
+  ): Promise<SavePurchaseResponse> => {
+    const response = await apiClient.post(
+      `${UPDATE_PURCHASE_ORDER}/${purchaseOrderId}`,
+      { medicines: newMedicines },
+    );
+    return response.data;
+  };
+
   const { data: distributorsData, isLoading: distributorsLoading } = useQuery<
     TDistributor[]
   >({
@@ -70,7 +84,7 @@ const useAddPurchase = (
     staleTime: 1000 * 60 * 5,
   });
 
-  // Fetch purchase details in edit mode
+  /** Fetch purchase details in edit mode */
   const { data: purchaseDetailsData, isLoading: isLoadingPurchaseDetails } =
     useQuery<GetPurchaseDetailsResponse>({
       queryKey: ['purchase-details', purchaseOrderId],
@@ -79,21 +93,18 @@ const useAddPurchase = (
       staleTime: 1000 * 60 * 5,
     });
 
-  // Save purchase mutation
+  /** Save purchase mutation */
   const savePurchaseMutation = useMutation({
     mutationFn: handleSaveMedicinesPurchase,
     onSuccess: (data) => {
       toast.success(data.message || 'Purchase saved successfully!');
 
-      // Invalidate all queries to ensure fresh data on back page
-      queryClient.invalidateQueries(); // This invalidates ALL queries
+      queryClient.invalidateQueries();
 
-      // Navigate back to purchases page
       setTimeout(() => {
         router.push('/dashboard/purchases');
       }, 1500);
 
-      // Reset form state
       setPurchaseInfo({
         selectedDistributor: '',
         distributorName: '',
@@ -112,6 +123,27 @@ const useAddPurchase = (
     },
   });
 
+  /** Update purchase mutation for edit mode */
+  const updatePurchaseMutation = useMutation({
+    mutationFn: ({
+      purchaseOrderId,
+      newMedicines,
+    }: {
+      purchaseOrderId: string;
+      newMedicines: TransformedMedicine[];
+    }) => handleUpdatePurchase(purchaseOrderId, newMedicines),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Purchase updated successfully!');
+      handleOnSuccess();
+    },
+    onError: (error: ApiError) => {
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to update purchase. Please try again.',
+      );
+    },
+  });
+
   const checkMutation = useMutation({
     mutationFn: async (
       params: DuplicateInvoiceCheckParams,
@@ -122,6 +154,7 @@ const useAddPurchase = (
     onSuccess: (data) => {
       if (!data.data.isInvoiceAvailable) {
         setInvoiceError(data.message);
+        handleOnSuccess();
       } else {
         setInvoiceError(null);
       }
@@ -201,6 +234,7 @@ const useAddPurchase = (
       );
 
       setMedicines(transformedMedicines);
+      setOriginalMedicinesCount(transformedMedicines.length);
     }
   }, [purchaseOrderId, purchaseDetailsData, distributorsData]);
 
@@ -228,6 +262,14 @@ const useAddPurchase = (
       return false;
     }
     return true;
+  };
+
+  const handleOnSuccess = () => {
+    queryClient.invalidateQueries();
+
+    setTimeout(() => {
+      router.back();
+    }, 1500);
   };
 
   const calculateTotals = (medicineList: TMedicine[]): PurchaseTotals => {
@@ -266,7 +308,7 @@ const useAddPurchase = (
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!purchaseInfo.distributorName.trim()) {
+    if (!purchaseInfo.selectedDistributor.trim()) {
       toast.error('Please select a distributor.');
       return;
     }
@@ -362,8 +404,19 @@ const useAddPurchase = (
       medicines: transformedMedicines,
     };
 
-    // Call the API to save purchase
-    savePurchaseMutation.mutate(purchaseData);
+    if (purchaseOrderId) {
+      const newMedicines = transformedMedicines.slice(originalMedicinesCount);
+      if (newMedicines.length === 0) {
+        toast.error('No new medicines to add.');
+        return;
+      }
+      updatePurchaseMutation.mutate({
+        purchaseOrderId,
+        newMedicines,
+      });
+    } else {
+      savePurchaseMutation.mutate(purchaseData);
+    }
   };
 
   return {
@@ -371,13 +424,15 @@ const useAddPurchase = (
     setPurchaseInfo,
     medicines,
     setMedicines,
+    originalMedicinesCount,
     showImportModal,
     setShowImportModal,
     distributors: distributorsData || [],
     distributorsLoading,
     isLoadingPurchaseDetails,
     isCheckingInvoice: checkMutation.isPending,
-    isSubmitting: savePurchaseMutation.isPending,
+    isSubmitting:
+      savePurchaseMutation.isPending || updatePurchaseMutation.isPending,
     invoiceError,
     handleMedicinesChange,
     handleImportMedicines,

@@ -7,6 +7,8 @@ import { useMedicineForm } from '@/hooks/useMedicineForm';
 const MedicineListManager: React.FC<MedicineListManagerProps> = ({
   onMedicinesChange,
   initialMedicines = [],
+  isEditMode = false,
+  existingMedicinesCount = 0,
 }) => {
   const {
     medicines,
@@ -52,16 +54,21 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
 
         {/* Add Medicine Row */}
         <div className="space-y-1 pr-2">
-          {medicines.map((medicine, index) => (
-            <AddMedicineRow
-              key={medicine.id}
-              medicine={medicine}
-              onUpdate={updateMedicine}
-              onDelete={deleteMedicine}
-              isLast={index === medicines.length - 1}
-              onAddNew={addMedicine}
-            />
-          ))}
+          {medicines.map((medicine, index) => {
+            const isReadOnly = isEditMode && index < existingMedicinesCount;
+
+            return (
+              <AddMedicineRow
+                key={medicine.id}
+                medicine={medicine}
+                onUpdate={updateMedicine}
+                onDelete={deleteMedicine}
+                isLast={index === medicines.length - 1}
+                onAddNew={addMedicine}
+                isReadOnly={isReadOnly}
+              />
+            );
+          })}
         </div>
       </div>
 

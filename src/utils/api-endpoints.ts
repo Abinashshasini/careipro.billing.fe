@@ -12,3 +12,4 @@ export const CHECK_DUPLICATE_INVOICE = `${BILLING_PURCHASE_URL}/check-duplicate-
 export const CREATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/create-purchase-order`;
 export const DELETE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/delete-purchase-order`;
 export const GET_PURCHASE_DETAILS_BY_ID = `${BILLING_PURCHASE_URL}/get-purchase-order`;
+export const UPDATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/update-purchase-order`;

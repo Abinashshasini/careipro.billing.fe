@@ -15,6 +15,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
   onDelete,
   isLast,
   onAddNew,
+  isReadOnly = false,
 }) => {
   const [form, setForm] = useState<TMedicineFormData>({
     med_name: medicine.med_name,
@@ -43,7 +44,8 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
     const baseClass = `medicine-input ${isBorderless ? 'borderless' : ''}`;
     const errorClass =
       showValidation && getFieldError(form, field) ? 'error' : '';
-    return `${baseClass} ${errorClass}`.trim();
+    const readOnlyClass = isReadOnly ? 'pointer-events-none' : '';
+    return `${baseClass} ${errorClass} ${readOnlyClass}`.trim();
   };
 
   // Handle add new with validation
@@ -83,6 +85,8 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
     key: keyof TMedicineFormData,
     value: string | number,
   ) => {
+    if (isReadOnly) return;
+
     const newForm = { ...form, [key]: value };
     setForm(newForm);
     onUpdate(medicine.id, newForm);
@@ -90,6 +94,8 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
 
   // Handle number input change (allows empty strings)
   const handleNumberChange = (key: keyof TMedicineFormData, value: string) => {
+    if (isReadOnly) return;
+
     // If empty string, keep as empty string, otherwise convert to number
     const newValue = value === '' ? '' : Number(value);
     handleChange(key, newValue);
@@ -387,16 +393,18 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
             </Button>
           </Tooltip>
         )}
-        <Tooltip content="Delete this row" position="top">
-          <Button
-            variant="danger"
-            className="font-bold"
-            onClick={() => onDelete(medicine.id)}
-            type="button"
-          >
-            <MdDelete size={17} />
-          </Button>
-        </Tooltip>
+        {!isReadOnly && (
+          <Tooltip content="Delete this row" position="top">
+            <Button
+              variant="danger"
+              className="font-bold"
+              onClick={() => onDelete(medicine.id)}
+              type="button"
+            >
+              <MdDelete size={17} />
+            </Button>
+          </Tooltip>
+        )}
       </div>
     </div>
   );
