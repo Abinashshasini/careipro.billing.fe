@@ -18,7 +18,6 @@ export const useMedicineForm = (options: UseMedicineFormOptions = {}) => {
     (): TMedicine => ({
       id: generateId(),
       med_name: '',
-      hsn: '',
       batch: '',
       expiryMM: '',
       expiryYY: '',

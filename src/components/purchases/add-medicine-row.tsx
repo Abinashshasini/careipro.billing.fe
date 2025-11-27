@@ -18,7 +18,6 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
 }) => {
   const [form, setForm] = useState<TMedicineFormData>({
     med_name: medicine.med_name,
-    hsn: medicine.hsn,
     batch: medicine.batch,
     expiryMM: medicine.expiryMM,
     expiryYY: medicine.expiryYY,

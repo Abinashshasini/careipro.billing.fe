@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import debounce from 'debounce';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import {
   CHECK_DUPLICATE_INVOICE,
   CREATE_PURCHASE_ORDER,
+  GET_PURCHASE_DETAILS_BY_ID,
 } from '@/utils/api-endpoints';
 import {
   TDistributor,
@@ -18,12 +20,16 @@ import {
   TPurchaseInfo,
   UseAddPurchaseReturn,
   PurchaseTotals,
+  GetPurchaseDetailsResponse,
 } from '@/types/purchases';
 import { isRowComplete } from '@/lib/medicineValidation';
 
 const useAddPurchase = (
   purchaseOrderId: string | null,
 ): UseAddPurchaseReturn => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [purchaseInfo, setPurchaseInfo] = useState<TPurchaseInfo>({
     selectedDistributor: '',
     distributorName: '',
@@ -42,6 +48,13 @@ const useAddPurchase = (
     return data.data.distributors;
   };
 
+  const handleFetchPurchaseDetails = async (
+    id: string,
+  ): Promise<GetPurchaseDetailsResponse> => {
+    const response = await apiClient.get(`${GET_PURCHASE_DETAILS_BY_ID}/${id}`);
+    return response.data;
+  };
+
   const handleSaveMedicinesPurchase = async (
     purchaseData: PurchaseData,
   ): Promise<SavePurchaseResponse> => {
@@ -57,12 +70,30 @@ const useAddPurchase = (
     staleTime: 1000 * 60 * 5,
   });
 
+  // Fetch purchase details in edit mode
+  const { data: purchaseDetailsData, isLoading: isLoadingPurchaseDetails } =
+    useQuery<GetPurchaseDetailsResponse>({
+      queryKey: ['purchase-details', purchaseOrderId],
+      queryFn: () => handleFetchPurchaseDetails(purchaseOrderId!),
+      enabled: !!purchaseOrderId,
+      staleTime: 1000 * 60 * 5,
+    });
+
   // Save purchase mutation
   const savePurchaseMutation = useMutation({
     mutationFn: handleSaveMedicinesPurchase,
     onSuccess: (data) => {
       toast.success(data.message || 'Purchase saved successfully!');
-      // Reset form after successful save
+
+      // Invalidate all queries to ensure fresh data on back page
+      queryClient.invalidateQueries(); // This invalidates ALL queries
+
+      // Navigate back to purchases page
+      setTimeout(() => {
+        router.push('/dashboard/purchases');
+      }, 1500);
+
+      // Reset form state
       setPurchaseInfo({
         selectedDistributor: '',
         distributorName: '',
@@ -111,7 +142,11 @@ const useAddPurchase = (
   }, []);
 
   useEffect(() => {
-    if (purchaseInfo.invoiceNo && purchaseInfo.selectedDistributor) {
+    if (
+      purchaseInfo.invoiceNo &&
+      purchaseInfo.selectedDistributor &&
+      !purchaseOrderId
+    ) {
       setInvoiceError(null);
       debouncedCheckInvoice({
         invoice_no: purchaseInfo.invoiceNo,
@@ -124,6 +159,7 @@ const useAddPurchase = (
     purchaseInfo.invoiceNo,
     purchaseInfo.selectedDistributor,
     debouncedCheckInvoice,
+    purchaseOrderId,
   ]);
 
   useEffect(() => {
@@ -131,6 +167,42 @@ const useAddPurchase = (
       debouncedCheckInvoice.clear();
     };
   }, [debouncedCheckInvoice]);
+
+  // Populate form data when in edit mode
+  useEffect(() => {
+    if (purchaseOrderId && purchaseDetailsData) {
+      const { purchase_order, purchase_order_items } = purchaseDetailsData.data;
+
+      setPurchaseInfo({
+        selectedDistributor: purchase_order.distributor_id,
+        distributorName: '',
+        invoiceNo: purchase_order.invoice_no,
+        invoiceDate: new Date(purchase_order.invoice_date),
+        paymentDueDate: new Date(purchase_order.payment_due_date),
+      });
+
+      // Transform purchase order items to TMedicine format
+      const transformedMedicines: TMedicine[] = purchase_order_items.map(
+        (item, index) => ({
+          id: `medicine-${index + 1}`,
+          med_name: item.med_name,
+          batch: item.batch,
+          expiryMM: item.expiry_mm,
+          expiryYY: item.expiry_yy,
+          pack: item.pack,
+          qty: item.qty,
+          free: item.free,
+          mrp: item.mrp,
+          rate: item.rate,
+          disc: item.disc,
+          amount: item.amount,
+          margin: item.margin,
+        }),
+      );
+
+      setMedicines(transformedMedicines);
+    }
+  }, [purchaseOrderId, purchaseDetailsData, distributorsData]);
 
   const handleMedicinesChange = (updatedMedicines: TMedicine[]) => {
     setMedicines(updatedMedicines);
@@ -245,7 +317,6 @@ const useAddPurchase = (
     // Calculate totals
     const totals = calculateTotals(validMedicines);
 
-
     const transformedMedicines = validMedicines.map((medicine) => {
       const packParts = medicine.pack.split('*').map((p) => parseInt(p, 10));
       const unitsPerStrip =
@@ -304,6 +375,7 @@ const useAddPurchase = (
     setShowImportModal,
     distributors: distributorsData || [],
     distributorsLoading,
+    isLoadingPurchaseDetails,
     isCheckingInvoice: checkMutation.isPending,
     isSubmitting: savePurchaseMutation.isPending,
     invoiceError,
