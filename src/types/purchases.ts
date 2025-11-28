@@ -102,10 +102,6 @@ export interface BasePurchaseOrder {
 export interface PurchaseOrder extends BaseEntity, BasePurchaseOrder {
   clinic_id: string;
   payment_status: string;
-  payment_summary: {
-    status: string;
-    color: string;
-  };
 }
 
 export interface PurchaseOrderDetails extends BaseEntity, BasePurchaseOrder {

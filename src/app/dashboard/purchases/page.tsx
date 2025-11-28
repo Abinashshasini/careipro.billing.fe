@@ -17,6 +17,8 @@ const PurchaseContainer = () => {
     useState<boolean>(false);
   const [refreshDistributorList, setRefreshDistributorList] =
     useState<number>(0);
+  const [refreshDistributorDetails, setRefreshDistributorDetails] =
+    useState<number>(0);
   const [editDistributorData, setEditDistributorData] =
     useState<TDistributor | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -26,7 +28,6 @@ const PurchaseContainer = () => {
     setIsEditMode(false);
     setEditDistributorData(null);
     setOpenAddDistributorModal(true);
-    setRefreshDistributorList(0);
   };
 
   /** Handle open distributor modal for editing */
@@ -34,7 +35,6 @@ const PurchaseContainer = () => {
     setIsEditMode(true);
     setEditDistributorData(_params);
     setOpenAddDistributorModal(true);
-    setRefreshDistributorList(0);
   };
 
   /** Handle delete success */
@@ -49,6 +49,12 @@ const PurchaseContainer = () => {
     setOpenAddDistributorModal(false);
     setIsEditMode(false);
     setEditDistributorData(null);
+  };
+
+  /** Function to handle Refresh distributos API */
+  const handleRefreshData = () => {
+    setRefreshDistributorDetails(Date.now());
+    setRefreshDistributorList(Date.now());
   };
 
   return (
@@ -67,7 +73,7 @@ const PurchaseContainer = () => {
       <div className="h-full flex-1">
         <InvoiceDetailsWrapper
           selectedDistributorId={selectedDistributorId}
-          refreshDistributorList={refreshDistributorList}
+          refreshDistributorDetails={refreshDistributorDetails}
           onEditDistributor={handleEditDistributor}
           onDeleteSuccess={handleDeleteSuccess}
         />
@@ -77,7 +83,7 @@ const PurchaseContainer = () => {
       <AddDistributorModal
         isOpen={openAddDistributorModal}
         onClose={handleCloseModal}
-        onSuccess={() => setRefreshDistributorList(Date.now())}
+        onSuccess={handleRefreshData}
         editData={editDistributorData}
         isEditMode={isEditMode}
       />

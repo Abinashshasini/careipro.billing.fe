@@ -13,7 +13,7 @@ import PurchaseOrdersTable from './purchase-orders-table';
 
 interface InvoiceDetailsWrapperProps {
   selectedDistributorId?: string | null;
-  refreshDistributorList?: number;
+  refreshDistributorDetails?: number;
   onEditDistributor?: (distributorData: TDistributor) => void;
   onDeleteSuccess?: () => void;
 }
@@ -40,7 +40,7 @@ const DEMO_DISTRIBUTOR: TDistributorSummary = {
 
 const InvoiceDetailsWrapper = ({
   selectedDistributorId,
-  refreshDistributorList,
+  refreshDistributorDetails,
   onEditDistributor,
   onDeleteSuccess,
 }: InvoiceDetailsWrapperProps) => {
@@ -54,10 +54,8 @@ const InvoiceDetailsWrapper = ({
     }
   };
 
-  // Check if we have a distributor ID to fetch
   const hasDistributorId = Boolean(selectedDistributorId || distributorId);
 
-  /** API call */
   const fetchData = async (): Promise<TDistributorSummary> => {
     const { data } = await apiClient.get<{ data: TDistributorSummary }>(
       `${GET_DISTRIBUTOR_BYID}/${selectedDistributorId || distributorId}`,
@@ -68,7 +66,7 @@ const InvoiceDetailsWrapper = ({
   const { data, isLoading, refetch } = useQuery<TDistributorSummary>({
     queryKey: [
       `${selectedDistributorId || distributorId}-distributor`,
-      refreshDistributorList,
+      refreshDistributorDetails,
     ],
     queryFn: fetchData,
     staleTime: 1000 * 60 * 5,
@@ -78,13 +76,13 @@ const InvoiceDetailsWrapper = ({
   // Refetch when refreshDistributorList changes and is greater than 0
   useEffect(() => {
     if (
-      refreshDistributorList &&
-      refreshDistributorList > 0 &&
+      refreshDistributorDetails &&
+      refreshDistributorDetails > 0 &&
       hasDistributorId
     ) {
       refetch();
     }
-  }, [refreshDistributorList, refetch, hasDistributorId]);
+  }, [refreshDistributorDetails, refetch, hasDistributorId]);
 
   const renderDistributorInfo = () => {
     if (!hasDistributorId) {

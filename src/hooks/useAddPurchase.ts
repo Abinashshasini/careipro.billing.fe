@@ -114,6 +114,7 @@ const useAddPurchase = (
       });
       setMedicines([]);
       setInvoiceError(null);
+      handleOnSuccess();
     },
     onError: (error: ApiError) => {
       toast.error(
@@ -154,7 +155,6 @@ const useAddPurchase = (
     onSuccess: (data) => {
       if (!data.data.isInvoiceAvailable) {
         setInvoiceError(data.message);
-        handleOnSuccess();
       } else {
         setInvoiceError(null);
       }

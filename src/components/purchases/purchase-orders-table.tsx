@@ -4,13 +4,14 @@ import moment from 'moment';
 import { useRouter } from 'next/navigation';
 import { MdDelete, MdPayment, MdDownload } from 'react-icons/md';
 import { IoIosArrowForward } from 'react-icons/io';
+import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { PurchaseOrder } from '@/types/purchases';
 import Tooltip from '@/components/ui/tooltip';
 import ConfirmationModal from '@/components/ui/confirmation-modal';
 import apiClient from '@/lib/apiClient';
 import { DELETE_PURCHASE_ORDER } from '@/utils/api-endpoints';
 import { ApiResponse } from '@/types/apitypes';
-import toast from 'react-hot-toast';
 
 interface PurchaseOrdersTableProps {
   purchaseOrders: PurchaseOrder[] | undefined;
@@ -20,14 +21,11 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   purchaseOrders,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedOrderDetails, setSelectedOrderDetails] =
     useState<PurchaseOrder | null>(null);
-
-  const handleDownload = (event: React.MouseEvent, _params: PurchaseOrder) => {
-    event.stopPropagation();
-  };
 
   const handleDeleteClick = (
     event: React.MouseEvent,
@@ -46,6 +44,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
       if (response.data.code === 200) {
         setShowDeleteConfirmation(false);
         setSelectedOrderDetails(null);
+        queryClient.invalidateQueries();
         toast.success(
           `"${selectedOrderDetails?.invoice_no}" has been deleted successfully.`,
         );
@@ -63,10 +62,21 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
     event.stopPropagation();
   };
 
+  const handleDownload = (event: React.MouseEvent, _params: PurchaseOrder) => {
+    event.stopPropagation();
+  };
+
   const handleRedirect = (id?: string) => {
     router.push(
       `/dashboard/purchases/add-purchase?purchaseOrderId=${id || ''}`,
     );
+  };
+
+  const handleGetColorForStatus = (status: string) => {
+    if (status === 'paid') return '#8AA624';
+    if (status === 'partial') return '#EAB308';
+    if (status === 'pending') return '#DC2626';
+    return '#6B7280';
   };
 
   if (!purchaseOrders || purchaseOrders.length === 0) {
@@ -134,9 +144,13 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
             <div className="col-span-1">
               <span
                 className="inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize text-white"
-                style={{ backgroundColor: order.payment_summary.color }}
+                style={{
+                  backgroundColor: handleGetColorForStatus(
+                    order.payment_status,
+                  ),
+                }}
               >
-                {order.payment_summary.status}
+                {order.payment_status}
               </span>
             </div>
 
