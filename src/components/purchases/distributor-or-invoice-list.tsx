@@ -5,7 +5,7 @@ import { DistributorOrInvoiceListProps } from '@/types/purchases';
 const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
   title = '',
   description = '',
-  amount = '',
+  address = '',
   seleceted,
   onClick = () => {},
 }) => {
@@ -18,10 +18,8 @@ const DistributorOrInvoiceList: FC<DistributorOrInvoiceListProps> = ({
     >
       <div className="min-w-0">
         <h3 className="text-sm font-semibold mb-1 truncate">{title}</h3>
+        <p className="text-xs text-gray truncate font-medium mb-1">{address}</p>
         <p className="text-xs text-gray truncate font-medium">{description}</p>
-      </div>
-      <div className="font-semibold text-red-500 ml-4 flex-shrink-0 text-sm">
-        {amount ? `₹${amount}` : <span className="text-gray-400">NA</span>}
       </div>
     </div>
   );

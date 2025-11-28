@@ -1,5 +1,5 @@
 const BILLING_DASHBOARD_URL = 'billing-dashboard';
-const BILLING_PURCHASE_URL = 'billing-purchase';
+const BILLING_PURCHASE_URL = 'medicine-purchase';
 
 export const LOGIN_API = '/authentication/login';
 export const GET_DISTRIBUTORS = `${BILLING_DASHBOARD_URL}/get-distributors`;

@@ -170,7 +170,7 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               key={element._id}
               title={`${element.distributor_name} | (${element.gst_number})`}
               description={handleDistributorDescription(element)}
-              amount={Number(element.current_balance) || 0}
+              address={element.address || ''}
               seleceted={selectedDistributorId === element._id}
               onClick={() => handleSelectDistributor(element._id)}
             />

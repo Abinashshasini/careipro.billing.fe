@@ -208,7 +208,7 @@ export interface DistributorOrInvoiceListProps {
   title: string;
   description: string;
   seleceted: boolean;
-  amount?: number | string;
+  address?: string;
   onClick?: () => void;
 }
 
