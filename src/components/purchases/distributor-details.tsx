@@ -113,7 +113,7 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
           <div className="text-black text-sm grid grid-cols-4">
             <span className="">Last invoice </span>
             <span className="">Last invoice date</span>
-            <span className="">Pending amount</span>
+            <span className="">Total Credit</span>
             <span className="">Total Purchased</span>
           </div>
           <div className="text-black text-sm grid grid-cols-4">

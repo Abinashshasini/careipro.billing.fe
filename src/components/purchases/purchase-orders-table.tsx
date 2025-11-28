@@ -81,7 +81,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
 
   if (!purchaseOrders || purchaseOrders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8">
+      <div className="flex flex-col items-center justify-center h-[calc(100%-223px)] p-8">
         <h3 className="text-lg font-medium text-gray-600 mb-2">
           No purchase orders available
         </h3>
@@ -138,7 +138,9 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
             </div>
 
             {/* Payble Amount */}
-            <div className="col-span-1 text-gray-600">₹2000</div>
+            <div className="col-span-1 text-gray-600">
+              {order.total_amount_payable}
+            </div>
 
             {/* Payment Status */}
             <div className="col-span-1">

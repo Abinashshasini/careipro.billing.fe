@@ -93,18 +93,22 @@ const useAddPurchase = (
       staleTime: 1000 * 60 * 5,
     });
 
+  /** Common success handler */
+  const handleOnSuccess = () => {
+    queryClient.invalidateQueries();
+
+    setTimeout(() => {
+      router.back();
+    }, 1500);
+  };
+
   /** Save purchase mutation */
   const savePurchaseMutation = useMutation({
     mutationFn: handleSaveMedicinesPurchase,
     onSuccess: (data) => {
       toast.success(data.message || 'Purchase saved successfully!');
 
-      queryClient.invalidateQueries();
-
-      setTimeout(() => {
-        router.push('/dashboard/purchases');
-      }, 1500);
-
+      // Reset form state
       setPurchaseInfo({
         selectedDistributor: '',
         distributorName: '',
@@ -114,6 +118,7 @@ const useAddPurchase = (
       });
       setMedicines([]);
       setInvoiceError(null);
+
       handleOnSuccess();
     },
     onError: (error: ApiError) => {
@@ -262,14 +267,6 @@ const useAddPurchase = (
       return false;
     }
     return true;
-  };
-
-  const handleOnSuccess = () => {
-    queryClient.invalidateQueries();
-
-    setTimeout(() => {
-      router.back();
-    }, 1500);
   };
 
   const calculateTotals = (medicineList: TMedicine[]): PurchaseTotals => {
