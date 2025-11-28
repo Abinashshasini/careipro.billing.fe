@@ -180,14 +180,16 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
                 </Tooltip>
 
                 {/* Record Payment Button */}
-                <Tooltip content="Record Payment" position="top">
-                  <button
-                    onClick={(event) => handleRecordPayment(event, order)}
-                    className="p-1.5 text-success hover:bg-green-100 rounded-md transition-colors"
-                  >
-                    <MdPayment size={17} />
-                  </button>
-                </Tooltip>
+                {order.payment_status !== 'paid' && (
+                  <Tooltip content="Record Payment" position="top">
+                    <button
+                      onClick={(event) => handleRecordPayment(event, order)}
+                      className="p-1.5 text-success hover:bg-green-100 rounded-md transition-colors"
+                    >
+                      <MdPayment size={17} />
+                    </button>
+                  </Tooltip>
+                )}
 
                 {/* Delete Button */}
                 <Tooltip content="Delete Purchase Order" position="top">
