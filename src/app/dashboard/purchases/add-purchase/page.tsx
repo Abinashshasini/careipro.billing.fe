@@ -282,7 +282,11 @@ const AddPurchaseOrder = () => {
           <form
             onSubmit={handleSubmit}
             className="space-y-6 relative z-1"
-            style={{ height: 'calc(100% - 260px)' }}
+            style={{
+              height: !!purchaseOrderId
+                ? 'calc(100% - 142px)'
+                : 'calc(100% - 260px)',
+            }}
           >
             <MedicineListManager
               onMedicinesChange={handleMedicinesChange}

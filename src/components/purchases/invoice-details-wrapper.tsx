@@ -54,8 +54,10 @@ const InvoiceDetailsWrapper = ({
     }
   };
 
+  // Check if we have a distributor ID to fetch
   const hasDistributorId = Boolean(selectedDistributorId || distributorId);
 
+  /** API call */
   const fetchData = async (): Promise<TDistributorSummary> => {
     const { data } = await apiClient.get<{ data: TDistributorSummary }>(
       `${GET_DISTRIBUTOR_BYID}/${selectedDistributorId || distributorId}`,

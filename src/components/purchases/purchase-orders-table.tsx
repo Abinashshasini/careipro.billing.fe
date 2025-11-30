@@ -9,6 +9,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PurchaseOrder } from '@/types/purchases';
 import Tooltip from '@/components/ui/tooltip';
 import ConfirmationModal from '@/components/ui/confirmation-modal';
+import RecordPaymentModal, {
+  PaymentData,
+} from '@/components/purchases/record-payment-modal';
 import apiClient from '@/lib/apiClient';
 import { DELETE_PURCHASE_ORDER } from '@/utils/api-endpoints';
 import { ApiResponse } from '@/types/apitypes';
@@ -26,6 +29,10 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedOrderDetails, setSelectedOrderDetails] =
     useState<PurchaseOrder | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrderForPayment, setSelectedOrderForPayment] =
+    useState<PurchaseOrder | null>(null);
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false);
 
   const handleDeleteClick = (
     event: React.MouseEvent,
@@ -36,6 +43,33 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
     setShowDeleteConfirmation(true);
   };
 
+  const handleConfirmPayment = async (paymentData: PaymentData) => {
+    try {
+      setIsRecordingPayment(true);
+
+      // TODO: Replace with actual API endpoint when available
+      // const response = await apiClient.post(`/record-payment/${selectedOrderForPayment?._id}`, paymentData);
+
+      // Simulate API call for now
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setShowPaymentModal(false);
+      setSelectedOrderForPayment(null);
+
+      // Only invalidate purchase-related queries
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+
+      toast.success(
+        `Payment of ₹${paymentData.payment_amount} recorded successfully for invoice "${selectedOrderForPayment?.invoice_no}".`,
+      );
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      toast.error('Failed to record payment. Please try again.');
+    } finally {
+      setIsRecordingPayment(false);
+    }
+  };
   const handleConfirmDelete = async () => {
     try {
       const response = await apiClient.delete<ApiResponse<null>>(
@@ -44,7 +78,11 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
       if (response.data.code === 200) {
         setShowDeleteConfirmation(false);
         setSelectedOrderDetails(null);
-        queryClient.invalidateQueries();
+
+        // Only invalidate purchase-related queries
+        queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+        queryClient.invalidateQueries({ queryKey: ['purchases'] });
+
         toast.success(
           `"${selectedOrderDetails?.invoice_no}" has been deleted successfully.`,
         );
@@ -57,13 +95,17 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
 
   const handleRecordPayment = (
     event: React.MouseEvent,
-    _params: PurchaseOrder,
+    order: PurchaseOrder,
   ) => {
     event.stopPropagation();
+    setSelectedOrderForPayment(order);
+    setShowPaymentModal(true);
   };
 
-  const handleDownload = (event: React.MouseEvent, _params: PurchaseOrder) => {
+  const handleDownload = (event: React.MouseEvent, order: PurchaseOrder) => {
     event.stopPropagation();
+    // TODO: Implement download functionality
+    console.log('Download invoice for:', order.invoice_no);
   };
 
   const handleRedirect = (id?: string) => {
@@ -223,6 +265,18 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
         cancelText="Not Sure!"
         confirmVariant="danger"
         isLoading={false}
+      />
+
+      {/* Record Payment Modal */}
+      <RecordPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setSelectedOrderForPayment(null);
+        }}
+        onConfirm={handleConfirmPayment}
+        purchaseOrder={selectedOrderForPayment}
+        isLoading={isRecordingPayment}
       />
     </div>
   );

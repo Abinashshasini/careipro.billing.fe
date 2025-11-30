@@ -16,6 +16,23 @@ import SortFilter, { SortOption } from './sort-filter';
 import { useRouter } from 'next/navigation';
 import { GET_DISTRIBUTORS } from '@/utils/api-endpoints';
 
+// Demo distributor data to show when no distributors are available
+const DEMO_DISTRIBUTOR: TDistributor = {
+  _id: 'demo-id',
+  distributor_name: 'Sample Medical Distributors',
+  gst_number: '29DEMO1234L1ZW',
+  state: 'Maharashtra',
+  mobile_number: '9876543210',
+  drug_license_number: 'MD12345678',
+  address: '123 Medical Street, Mumbai, Maharashtra',
+  last_invoice_date: new Date('2024-01-15'),
+  last_invoice_no: 1,
+  current_balance: 0,
+  opening_balance: 0,
+  email_id: 'demo@samplemedical.com',
+  district: 'Mumbai',
+};
+
 const DistibutorListWraper: FC<DistributorListWraperProps> = ({
   selectedDistributorId,
   setSelectedDistributorId,
@@ -53,15 +70,27 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  const filteredData = data?.filter((supplier) => {
-    const matchesText =
-      supplier.distributor_name.toLowerCase().includes(query.toLowerCase()) ||
-      supplier.gst_number.toLowerCase().includes(query.toLowerCase());
-    return matchesText;
-  });
+  const shouldShowDemo = !data || data.length === 0;
+
+  const filteredData = shouldShowDemo
+    ? [DEMO_DISTRIBUTOR]
+    : data?.filter((supplier) => {
+        const matchesText =
+          supplier.distributor_name
+            .toLowerCase()
+            .includes(query.toLowerCase()) ||
+          supplier.gst_number.toLowerCase().includes(query.toLowerCase());
+        return matchesText;
+      });
 
   /** Function to replace the route with distributor ID */
   const handleSelectDistributor = (distributorId: string) => {
+    // Don't select demo distributor, show modal instead
+    if (distributorId === 'demo-id') {
+      openDistributorModal();
+      return;
+    }
+
     setSelectedDistributorId(distributorId);
     router.replace(`/dashboard/purchases?distributorId=${distributorId}`);
   };
@@ -165,30 +194,46 @@ const DistibutorListWraper: FC<DistributorListWraperProps> = ({
               ))}
           </>
         ) : filteredData && filteredData.length > 0 ? (
-          filteredData.map((element) => (
-            <DistributorOrInvoiceList
-              key={element._id}
-              title={`${element.distributor_name} | (${element.gst_number})`}
-              description={handleDistributorDescription(element)}
-              address={element.address || ''}
-              seleceted={selectedDistributorId === element._id}
-              onClick={() => handleSelectDistributor(element._id)}
-            />
-          ))
+          <>
+            {filteredData.map((element) => (
+              <DistributorOrInvoiceList
+                key={element._id}
+                title={`${element.distributor_name} | (${element.gst_number})`}
+                description={handleDistributorDescription(element)}
+                address={element.address || ''}
+                seleceted={selectedDistributorId === element._id}
+                onClick={() => handleSelectDistributor(element._id)}
+              />
+            ))}
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-8">
             <FaRegAddressBook size={60} className="text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">
-              No Distributors Available
+              {query ? 'No Matching Distributors' : 'No Distributors Available'}
             </h3>
             <p className="text-sm text-gray-500 mb-6 text-center">
-              Add a distributor to manage purchases{' '}
-              <span
-                onClick={() => openDistributorModal()}
-                className="underline text-sm text-gray-500 cursor-pointer"
-              >
-                add distributor
-              </span>
+              {query ? (
+                <>
+                  No distributors match your search for &ldquo;{query}&rdquo;.{' '}
+                  <span
+                    onClick={() => setQuery('')}
+                    className="underline cursor-pointer"
+                  >
+                    Clear search
+                  </span>
+                </>
+              ) : (
+                <>
+                  Add a distributor to manage purchases{' '}
+                  <span
+                    onClick={() => openDistributorModal()}
+                    className="underline text-sm text-gray-500 cursor-pointer"
+                  >
+                    add distributor
+                  </span>
+                </>
+              )}
             </p>
           </div>
         )}

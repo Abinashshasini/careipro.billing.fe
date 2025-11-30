@@ -239,7 +239,6 @@ const parseMedicineRow = (
       'medicine',
       'item',
     ]),
-    hsn: getColumnValue(['hsn', 'hsncode']),
     batch: getColumnValue(['batch', 'batchno', 'batchnumber']),
     expiryMM: expiryMM || getColumnValue(['expirymm', 'month', 'mm']),
     expiryYY: expiryYY || getColumnValue(['expiryyy', 'year', 'yy']),
