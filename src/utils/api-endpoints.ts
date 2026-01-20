@@ -1,5 +1,7 @@
-const BILLING_DASHBOARD_URL = 'billing-dashboard';
-const BILLING_PURCHASE_URL = 'medicine-purchase';
+const BILLING_DASHBOARD_URL = 'distributor';
+const BILLING_PURCHASE_URL = 'purchase';
+const BILLING_MEDICINE_URL = 'medicine';
+const BILLING_STOCK_URL = 'stock';
 
 export const LOGIN_API = '/authentication/login';
 export const GET_DISTRIBUTORS = `${BILLING_DASHBOARD_URL}/get-distributors`;
@@ -13,3 +15,5 @@ export const CREATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/create-purchase-or
 export const DELETE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/delete-purchase-order`;
 export const GET_PURCHASE_DETAILS_BY_ID = `${BILLING_PURCHASE_URL}/get-purchase-order`;
 export const UPDATE_PURCHASE_ORDER = `${BILLING_PURCHASE_URL}/update-purchase-order`;
+
+export const SEARCH_MEDICINES = `${BILLING_MEDICINE_URL}/search-medicine`;

@@ -7,6 +7,7 @@ import apiClient from '@/lib/apiClient';
 import {
   CHECK_DUPLICATE_INVOICE,
   CREATE_PURCHASE_ORDER,
+  GET_DISTRIBUTORS,
   GET_PURCHASE_DETAILS_BY_ID,
   UPDATE_PURCHASE_ORDER,
 } from '@/utils/api-endpoints';
@@ -47,7 +48,7 @@ const useAddPurchase = (
   const handleFetchDistributors = async (): Promise<TDistributor[]> => {
     const { data } = await apiClient.get<{
       data: { distributors: TDistributor[] };
-    }>('/billing-dashboard/get-distributors');
+    }>(`/${GET_DISTRIBUTORS}`);
     return data.data.distributors;
   };
 

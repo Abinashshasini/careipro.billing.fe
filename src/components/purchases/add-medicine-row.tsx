@@ -1,9 +1,20 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MdDelete } from 'react-icons/md';
+import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
+import debounce from 'debounce';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/tooltip';
-import { TMedicineFormData, AddMedicineRowProps } from '@/types/purchases';
+import apiClient from '@/lib/apiClient';
+import { SEARCH_MEDICINES } from '@/utils/api-endpoints';
+import {
+  TMedicineFormData,
+  AddMedicineRowProps,
+  MedicineSearchResult,
+  MedicineSelectOption,
+  BatchSelectOption,
+} from '@/types/purchases';
 import { getFieldError, isRowComplete } from '@/lib/medicineValidation';
 import './styles/add-purchase-row.css';
 
@@ -34,9 +45,145 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
   const [margin, setMargin] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
 
+  // Medicine search state
+  const [medicineOptions, setMedicineOptions] = useState<
+    MedicineSelectOption[]
+  >([]);
+  const [selectedMedicine, setSelectedMedicine] =
+    useState<MedicineSelectOption | null>(null);
+  const [medicineLoading, setMedicineLoading] = useState(false);
+
+  // Batch selection state
+  const [batchOptions, setBatchOptions] = useState<BatchSelectOption[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<BatchSelectOption | null>(
+    null,
+  );
+
   const currentRowValid = isRowComplete(form);
 
-  // Helper function to get input class names
+  // Search medicines with debounce
+  const searchMedicines = useCallback((searchTerm: string) => {
+    const debouncedSearch = debounce(async (term: string) => {
+      if (!term || term.length < 2) {
+        setMedicineOptions([]);
+        return;
+      }
+
+      setMedicineLoading(true);
+      try {
+        const response = await apiClient.post(SEARCH_MEDICINES, {
+          search: term,
+        });
+
+        const medicines: MedicineSearchResult[] =
+          response.data?.data?.medicines || [];
+        const options: MedicineSelectOption[] = medicines.map((element) => ({
+          value: element._id,
+          label: `${element.name}${
+            element.manufacturer ? ` - ${element.manufacturer}` : ''
+          }`,
+          medicine: element,
+        }));
+
+        setMedicineOptions(options);
+      } catch (error) {
+        console.error('Medicine search error:', error);
+        setMedicineOptions([]);
+      } finally {
+        setMedicineLoading(false);
+      }
+    }, 300);
+
+    debouncedSearch(searchTerm);
+  }, []);
+
+  // Handle medicine selection
+  const handleMedicineSelect = (option: MedicineSelectOption | null) => {
+    setSelectedMedicine(option);
+    setSelectedBatch(null);
+    setBatchOptions([]);
+
+    if (option?.medicine) {
+      const selectedMedicine = option.medicine;
+      const updatedForm = {
+        ...form,
+        med_name: selectedMedicine.name,
+      };
+      setForm(updatedForm);
+      onUpdate(medicine.id, updatedForm);
+
+      // Populate batch options if available
+      if (selectedMedicine.batches && selectedMedicine.batches.length > 0) {
+        const batchOpts: BatchSelectOption[] = selectedMedicine.batches.map(
+          (batch) => ({
+            value: batch._id,
+            label: `${batch.batch} - Exp: ${batch.expiry_mm}/${
+              batch.expiry_yy
+            }${batch.pack ? ` - ${batch.pack}` : ''}`,
+            batch: batch,
+          }),
+        );
+        setBatchOptions(batchOpts);
+      }
+    }
+  };
+
+  // Handle batch selection
+  const handleBatchSelect = (option: BatchSelectOption | null) => {
+    setSelectedBatch(option);
+
+    if (option?.batch) {
+      const batch = option.batch;
+      const updatedForm: TMedicineFormData = {
+        ...form,
+        batch: batch.batch,
+        expiryMM: batch.expiry_mm,
+        expiryYY: batch.expiry_yy,
+        pack: batch.pack,
+        mrp:
+          typeof batch.mrp === 'number'
+            ? batch.mrp
+            : batch.mrp
+              ? Number(batch.mrp) || ''
+              : '',
+        rate:
+          typeof batch.rate === 'number'
+            ? batch.rate
+            : batch.rate
+              ? Number(batch.rate) || ''
+              : '',
+        disc:
+          typeof batch.disc === 'number'
+            ? batch.disc
+            : batch.disc
+              ? Number(batch.disc) || ''
+              : '',
+      };
+      setForm(updatedForm);
+      onUpdate(medicine.id, updatedForm);
+    }
+  };
+
+  // Handle medicine input change for CreatableSelect
+  const handleMedicineInputChange = (inputValue: string) => {
+    searchMedicines(inputValue);
+  };
+
+  // Handle creating new medicine option
+  const handleCreateMedicine = (inputValue: string) => {
+    const newOption: MedicineSelectOption = {
+      value: `new-${inputValue}`,
+      label: inputValue,
+      medicine: {
+        _id: `new-${inputValue}`,
+        name: inputValue,
+      },
+    };
+    setSelectedMedicine(newOption);
+    const updatedForm = { ...form, med_name: inputValue };
+    setForm(updatedForm);
+    onUpdate(medicine.id, updatedForm);
+  };
   const getInputClassName = (
     field: keyof TMedicineFormData,
     isBorderless = false,
@@ -142,13 +289,55 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
             : ''
         }`}
       >
-        <input
+        <CreatableSelect
+          value={selectedMedicine}
+          onChange={handleMedicineSelect}
+          onInputChange={handleMedicineInputChange}
+          onCreateOption={handleCreateMedicine}
+          options={medicineOptions}
+          isLoading={medicineLoading}
           placeholder="Search Product*"
-          value={form.med_name}
-          onChange={(e) => handleChange('med_name', e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={getInputClassName('med_name')}
-          tabIndex={0}
+          isClearable
+          isSearchable
+          formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+          noOptionsMessage={({ inputValue }) =>
+            inputValue.length < 2
+              ? 'Type 2+ characters to search'
+              : 'No medicines found'
+          }
+          styles={{
+            control: (base) => ({
+              ...base,
+              border: 'none',
+              boxShadow: 'none',
+              minHeight: '36px',
+              backgroundColor: 'transparent',
+            }),
+            placeholder: (base) => ({
+              ...base,
+              color: '#9ca3af',
+              fontSize: '0.875rem',
+              fontWeight: '400',
+            }),
+            singleValue: (base) => ({
+              ...base,
+              color: '#000000',
+              fontSize: '0.875rem',
+              fontWeight: '400',
+            }),
+            input: (base) => ({
+              ...base,
+              color: '#000000',
+              fontSize: '0.875rem',
+            }),
+            option: (base) => ({
+              ...base,
+              fontSize: '0.875rem',
+              fontWeight: '400',
+              color: '#000000',
+            }),
+          }}
+          className={isReadOnly ? 'pointer-events-none' : ''}
         />
         {showValidation && getFieldError(form, 'med_name') && (
           <div className="absolute top-full left-0 text-xs text-red-500 mt-1 z-10 bg-white p-1 rounded shadow">
@@ -163,14 +352,40 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
             : ''
         }`}
       >
-        <input
-          placeholder="Batch*"
-          value={form.batch}
-          onChange={(e) => handleChange('batch', e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={getInputClassName('batch')}
-          tabIndex={0}
-        />
+        {batchOptions.length > 0 ? (
+          <Select
+            value={selectedBatch}
+            onChange={handleBatchSelect}
+            options={batchOptions}
+            placeholder="Select Batch*"
+            isClearable
+            isSearchable
+            noOptionsMessage={() => 'No batches available'}
+            styles={{
+              control: (base) => ({
+                ...base,
+                border: 'none',
+                boxShadow: 'none',
+                minHeight: '36px',
+                backgroundColor: 'transparent',
+              }),
+              placeholder: (base) => ({
+                ...base,
+                color: '#9ca3af',
+              }),
+            }}
+            className={isReadOnly ? 'pointer-events-none' : ''}
+          />
+        ) : (
+          <input
+            placeholder="Batch*"
+            value={form.batch}
+            onChange={(e) => handleChange('batch', e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={getInputClassName('batch')}
+            tabIndex={0}
+          />
+        )}
         {showValidation && getFieldError(form, 'batch') && (
           <div className="absolute top-full left-0 text-xs text-red-500 mt-1 z-10 bg-white p-1 rounded shadow">
             {getFieldError(form, 'batch')}

@@ -180,6 +180,13 @@ const AddPurchaseOrder = () => {
                   className="react-select-container w-64 text-sm"
                   classNamePrefix="react-select"
                   styles={{
+                    control: (base) => ({
+                      ...base,
+                      border: 'none',
+                      boxShadow: 'none',
+                      minHeight: '36px',
+                      backgroundColor: 'transparent',
+                    }),
                     option: (base) => ({
                       ...base,
                       fontSize: '0.875rem',

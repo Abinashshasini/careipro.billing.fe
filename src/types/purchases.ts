@@ -74,6 +74,42 @@ export interface TMedicine extends BaseMedicine {
 
 export type TMedicineFormData = BaseMedicine;
 
+// Medicine Search Types
+export interface MedicineSearchResult {
+  _id: string;
+  name: string;
+  type?: string;
+  manufacturer?: string;
+  composition?: string;
+  pack_size?: string;
+  batches?: MedicineBatch[];
+}
+
+export interface MedicineBatch {
+  _id: string;
+  batch: string;
+  expiry_mm: string;
+  expiry_yy: string;
+  pack: string;
+  qty_available?: number;
+  mrp?: number;
+  rate?: number;
+  disc?: number;
+  medicine_id: string;
+}
+
+export interface MedicineSelectOption {
+  value: string;
+  label: string;
+  medicine: MedicineSearchResult;
+}
+
+export interface BatchSelectOption {
+  value: string;
+  label: string;
+  batch: MedicineBatch;
+}
+
 export interface TransformedMedicine {
   med_name: string;
   batch: string;

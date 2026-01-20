@@ -24,6 +24,58 @@
     border: none;
 }
 
+/* React Select customization */
+.react-select__control {
+    border: none;
+    box-shadow: none;
+    min-height: 36px;
+    background: transparent;
+    font-size: 0.875rem;
+}
+
+/* .react-select__control:hover {
+    border: none;
+} */
+
+.react-select__control--is-focused {
+    border: none;
+    box-shadow: none;
+}
+
+.react-select__value-container {
+    padding: 0 0.5rem;
+}
+
+.react-select__placeholder {
+    color: #9ca3af;
+    margin: 0;
+}
+
+.react-select__input-container {
+    margin: 0;
+    padding: 0;
+}
+
+.react-select__menu {
+    z-index: 50 !important;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.react-select__option {
+    padding: 8px 12px;
+}
+
+.react-select__option--is-focused {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+.react-select__option--is-selected {
+    background-color: #3b82f6;
+    color: white;
+}
+
 /* Remove number input spinners */
 .medicine-input[type="number"]::-webkit-outer-spin-button,
 .medicine-input[type="number"]::-webkit-inner-spin-button {
