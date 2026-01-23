@@ -25,9 +25,11 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
   const totals = calculateTotals();
 
   return (
-    <>
-      <div className="w-full light-border rounded-lg items-start px-4 pb-6 flex flex-col overflow-y-auto overflow-x-hidden h-full relative">
-        <div className="flex items-center whitespace-nowrap text-xs font-regular text-black w-full sticky top-0 bg-white py-4 z-2">
+    <div className="w-full light-border rounded-lg flex flex-col h-full relative overflow-hidden">
+      {/* Medicine Table with Scrollable Body */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4">
+        {/* Sticky Header */}
+        <div className="flex items-center whitespace-nowrap text-xs font-regular text-black w-full sticky top-0 bg-white py-4 z-10 border-b border-gray-200">
           <div className="initial">#</div>
           <div className="productName">Product / Barcode</div>
           <div className="batch">BATCH</div>
@@ -42,18 +44,10 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
           <div className="margin">MARGIN</div>
           <div className="amount">AMT</div>
           <div className="amount">ACTION</div>
-          {medicines?.length > 1 && (
-            <button
-              onClick={clearAllMedicines}
-              className="text-red-600 hover:text-red-800 font-bold"
-            >
-              CLEAR ALL
-            </button>
-          )}
         </div>
 
-        {/* Add Medicine Row */}
-        <div className="space-y-1 pr-2">
+        {/* Add Medicine Rows */}
+        <div className="space-y-1 pr-2 pb-4">
           {medicines.map((medicine, index) => {
             const isReadOnly = isEditMode && index < existingMedicinesCount;
 
@@ -72,32 +66,44 @@ const MedicineListManager: React.FC<MedicineListManagerProps> = ({
         </div>
       </div>
 
-      {/* Totals Summary */}
-      <div className="w-full light-border rounded-lg items-start px-4 gap-2 flex flex-col pt-3">
-        <div className="flex gap-6 text-sm mb-3">
-          <div className="flex justify-between gap-4">
-            <span className="font-medium">Total Items:</span>
-            <span className="font-bold">{totals.totalItems}</span>
+      {/* Sticky Footer - Totals Summary */}
+      <div className="w-full border-t-2 border-gray-200 bg-white px-4 py-3 sticky bottom-0 z-10">
+        <div className="flex items-center justify-between gap-6 text-sm">
+          <div className="flex gap-6 flex-wrap">
+            <div className="flex justify-between gap-4">
+              <span className="font-medium text-gray-700">Total Items:</span>
+              <span className="font-bold text-black">{totals.totalItems}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="font-medium text-gray-700">Total Quantity:</span>
+              <span className="font-bold text-black">{totals.totalQty}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="font-medium text-gray-700">Total Discount:</span>
+              <span className="font-bold text-danger">
+                ₹{totals.totalDiscount.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="font-medium text-gray-700">Total Amount:</span>
+              <span className="font-bold text-success text-lg">
+                ₹{totals.totalAmount.toFixed(2)}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between gap-4">
-            <span className="font-medium">Total Quantity:</span>
-            <span className="font-bold">{totals.totalQty}</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="font-medium">Total Discount:</span>
-            <span className="font-bold text-danger">
-              ₹ {totals.totalDiscount.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="font-medium">Total Amount:</span>
-            <span className="font-bold text-success">
-              ₹ {totals.totalAmount.toFixed(2)}
-            </span>
-          </div>
+
+          {/* Clear All Button */}
+          {medicines?.length > 1 && (
+            <button
+              onClick={clearAllMedicines}
+              className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <span>Clear All</span>
+            </button>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

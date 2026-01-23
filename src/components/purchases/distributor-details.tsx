@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { TDistributorSummary } from '@/types/purchases';
 import moment from 'moment';
 import toast from 'react-hot-toast';
-import { MdEditSquare } from 'react-icons/md';
-import DistributorOptionsDropdown from './distributor-options-dropdown';
+import { MdEdit, MdDelete, MdPhone, MdBusiness } from 'react-icons/md';
+import { HiLocationMarker } from 'react-icons/hi';
+import { BsFileTextFill } from 'react-icons/bs';
+import { FaFileInvoiceDollar } from 'react-icons/fa';
 import ConfirmationModal from '@/components/ui/confirmation-modal';
+import Tooltip from '@/components/ui/tooltip';
 import apiClient from '@/lib/apiClient';
 import { DELETE_DISTRIBUTOR } from '@/utils/api-endpoints';
 
@@ -23,7 +26,6 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   onDeleteSuccess,
 }) => {
   const { distributor, purchaseSummary } = data;
-  const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -35,7 +37,6 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
 
   const handleDelete = () => {
     setShowDeleteConfirmation(true);
-    setShowOptionsDropdown(false);
   };
 
   const handleConfirmDelete = async () => {
@@ -61,81 +62,126 @@ const DistributorDetails: React.FC<DistributorDetailsProps> = ({
   };
 
   return (
-    <div className="flex gap-4">
-      {/* Avatar */}
-      <div
-        className={`h-15 w-15 flex items-center justify-center font-bold text-2xl rounded-lg ${'bg-bg-primary text-primary'}`}
-      >
-        {distributor.distributor_name &&
-          distributor.distributor_name.slice(0, 2).toUpperCase()}
-      </div>
+    <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg border border-gray-200 p-4">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left Section: Avatar + Info */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Avatar */}
+          <div className="h-14 w-14 flex items-center justify-center font-bold text-lg rounded-lg bg-primary text-white flex-shrink-0">
+            <span className="truncate px-1">
+              {distributor.distributor_name &&
+                distributor.distributor_name.slice(0, 2).toUpperCase()}
+            </span>
+          </div>
 
-      <div className="flex-1">
-        {/* Name and GST */}
-        <div className="text-lg font-medium text-black flex">
-          {distributor.distributor_name}
-          {distributor.gst_number && (
-            <span>&nbsp;({distributor.gst_number})</span>
-          )}
-          <div
-            className={`relative ml-2 flex items-center ${
-              isDemo ? 'pointer-events-none' : ''
-            }`}
-          >
-            <div
-              className="flex items-center text-xs text-danger gap-0.5 cursor-pointer hover:opacity-80 transition"
-              onClick={() => setShowOptionsDropdown(!showOptionsDropdown)}
-            >
-              <MdEditSquare /> More Options
+          {/* Distributor Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5 min-w-0">
+              <h3 className="text-lg font-bold text-gray-900 truncate flex-shrink">
+                {distributor.distributor_name}
+              </h3>
+              {distributor.gst_number && (
+                <span className="px-2 py-0.5 bg-white text-primary text-xs font-semibold rounded border border-blue-300 whitespace-nowrap flex-shrink-0">
+                  {distributor.gst_number}
+                </span>
+              )}
             </div>
-            <DistributorOptionsDropdown
-              isOpen={showOptionsDropdown}
-              onClose={() => setShowOptionsDropdown(false)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+
+            {/* Contact Info - Inline */}
+            <div className="flex items-center gap-4 text-sm flex-wrap">
+              {distributor.state && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <HiLocationMarker
+                    className="text-primary flex-shrink-0"
+                    size={15}
+                  />
+                  <span className="text-gray-700 font-medium truncate">
+                    {distributor.state}
+                  </span>
+                </div>
+              )}
+              {distributor.mobile_number && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <MdPhone className="text-primary flex-shrink-0" size={15} />
+                  <span className="text-gray-700 font-medium">
+                    {distributor.mobile_number}
+                  </span>
+                </div>
+              )}
+              {distributor.drug_license_number && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <MdBusiness
+                    className="text-primary flex-shrink-0"
+                    size={15}
+                  />
+                  <span className="text-gray-700 font-medium truncate">
+                    Lic: {distributor.drug_license_number}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* State and Mobile */}
-        <div className="text-sm flex gap-1 mb-3 $ text-gray">
-          <p>
-            {distributor.state && `${distributor.state}, `}
-            {distributor.mobile_number}
-          </p>
-          <p className="text-primary font-bold">
-            ({distributor.drug_license_number})
-          </p>
-        </div>
-
-        {/* Invoice Details */}
-        <div className="flex gap-2 flex-col w-2/3">
-          <div className="text-black text-sm grid grid-cols-4">
-            <span className="">Last invoice </span>
-            <span className="">Last invoice date</span>
-            <span className="">Total Credit</span>
-            <span className="">Total Purchased</span>
+        {/* Middle Section: Summary Stats */}
+        <div className="flex items-center gap-4 px-4 border-l-2 border-blue-300">
+          <div className="text-center min-w-[70px]">
+            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Last Invoice
+            </p>
+            <p className="text-base font-bold text-gray-900">
+              #{purchaseSummary.last_invoice || 'N/A'}
+            </p>
           </div>
-          <div className="text-black text-sm grid grid-cols-4">
-            <span className="font-bold  text-black">
-              {purchaseSummary.last_invoice || '-'}
-            </span>
-            <span className=" text-black font-bold">
+          <div className="text-center min-w-[70px]">
+            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Last Date
+            </p>
+            <p className="text-base font-bold text-gray-900">
               {purchaseSummary.last_invoice_date
-                ? moment(purchaseSummary.last_invoice_date).format('MMM Do YY')
-                : '-'}
-            </span>
-            <span
-              className="font-bold "
-              style={{ color: purchaseSummary.pending_amount_color }}
-            >
-              ₹{purchaseSummary.pending_amount.toFixed(2) || 0}
-            </span>
-            <span className="font-medium  text-success">
-              ₹{purchaseSummary.total_amount.toFixed(2) || 0}
-            </span>
+                ? moment(purchaseSummary.last_invoice_date).format('DD MMM YY')
+                : 'N/A'}
+            </p>
+          </div>
+          <div className="text-center min-w-[75px]">
+            <p className="text-[11px] font-semibold text-orange-600 uppercase tracking-wide mb-1">
+              Pending
+            </p>
+            <p className="text-base font-bold text-orange-700">
+              ₹{purchaseSummary.pending_amount?.toFixed(2) || '0.00'}
+            </p>
+          </div>
+          <div className="text-center min-w-[75px]">
+            <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wide mb-1">
+              Total Paid
+            </p>
+            <p className="text-base font-bold text-emerald-700">
+              ₹{purchaseSummary.total_amount?.toFixed(2) || '0.00'}
+            </p>
           </div>
         </div>
+
+        {/* Right Section: Action Buttons */}
+        {!isDemo && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Tooltip content="Edit Distributor" position="top">
+              <button
+                onClick={handleEdit}
+                className="p-1.5 text-primary hover:bg-blue-100 rounded-md transition-colors"
+              >
+                <MdEdit size={16} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Delete Distributor" position="top">
+              <button
+                onClick={handleDelete}
+                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              >
+                <MdDelete size={16} />
+              </button>
+            </Tooltip>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

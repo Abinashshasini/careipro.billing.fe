@@ -20,6 +20,31 @@ interface PurchaseOrdersTableProps {
   purchaseOrders: PurchaseOrder[] | undefined;
 }
 
+type FilterStatus = 'all' | 'paid' | 'partial' | 'pending';
+
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const getStatusStyles = () => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'partial':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'pending':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <span
+      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getStatusStyles()}`}
+    >
+      {status}
+    </span>
+  );
+};
+
 const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   purchaseOrders,
 }) => {
@@ -33,6 +58,7 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   const [selectedOrderForPayment, setSelectedOrderForPayment] =
     useState<PurchaseOrder | null>(null);
   const [isRecordingPayment, setIsRecordingPayment] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
   const handleDeleteClick = (
     event: React.MouseEvent,
@@ -114,11 +140,20 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
     );
   };
 
-  const handleGetColorForStatus = (status: string) => {
-    if (status === 'paid') return '#8AA624';
-    if (status === 'partial') return '#EAB308';
-    if (status === 'pending') return '#DC2626';
-    return '#6B7280';
+  // Filter purchase orders based on selected status
+  const filteredOrders =
+    filterStatus === 'all'
+      ? purchaseOrders
+      : purchaseOrders?.filter(
+          (order) => order.payment_status === filterStatus,
+        );
+
+  const getStatusCount = (status: FilterStatus) => {
+    if (status === 'all') return purchaseOrders?.length || 0;
+    return (
+      purchaseOrders?.filter((order) => order.payment_status === status)
+        .length || 0
+    );
   };
 
   if (!purchaseOrders || purchaseOrders.length === 0) {
@@ -141,114 +176,142 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   }
 
   return (
-    <div className="h-[calc(100%-223px)] overflow-y-scroll">
-      {/* Table Header */}
-      <div className="grid grid-cols-13 bg-gray-50 p-3 border-b border-gray-200 text-xs font-medium text-gray-700 gap-4 sticky top-0 z-2">
-        <div className="col-span-1">SL NO</div>
-        <div className="col-span-2">INVOICE</div>
-        <div className="col-span-2">INVOICE DATE</div>
-        <div className="col-span-1">PAYBLE</div>
-        <div className="col-span-1">STATUS</div>
-        <div className="col-span-2">AMOUNT</div>
-        <div className="col-span-2">DUE DATE</div>
-        <div className="col-span-2">OPTIONS</div>
+    <div className="h-[calc(100%-223px)] flex flex-col">
+      {/* Quick Filter Buttons */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <span className="text-xs font-medium text-gray-600 mr-2">Filter:</span>
+        {(['all', 'pending', 'partial', 'paid'] as FilterStatus[]).map(
+          (status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                filterStatus === status
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              }`}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+              <span
+                className={`ml-1.5 ${
+                  filterStatus === status ? 'text-white' : 'text-gray-500'
+                }`}
+              >
+                ({getStatusCount(status)})
+              </span>
+            </button>
+          ),
+        )}
       </div>
 
-      {/* Table Body */}
-      <div className="border border-gray-200">
-        {purchaseOrders.map((order, index) => (
-          <div
-            key={order._id}
-            className={`grid grid-cols-13 p-3 text-sm hover:bg-gray-100 transition-colors gap-4 items-center cursor-pointer ${
-              index !== purchaseOrders.length - 1
-                ? 'border-b border-gray-100'
-                : ''
-            }`}
-            onClick={() => handleRedirect(order._id)}
-          >
-            {/* Serial Number */}
-            <div className="col-span-1 pl-1">{index + 1}</div>
+      {/* Table Container */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Table Header */}
+        <div className="grid grid-cols-12 bg-gray-50 p-3 border-b border-gray-200 text-xs font-semibold text-gray-700 gap-3 sticky top-0 z-10">
+          <div className="col-span-1">#</div>
+          <div className="col-span-3">INVOICE & DATE</div>
+          <div className="col-span-2">AMOUNT</div>
+          <div className="col-span-2">STATUS</div>
+          <div className="col-span-2">DUE DATE</div>
+          <div className="col-span-2">ACTIONS</div>
+        </div>
 
-            {/* Invoice Number */}
-            <div className="col-span-2 font-medium text-black truncate">
-              {order.invoice_no}
-            </div>
-
-            {/* Invoice Date */}
-            <div className="col-span-2 text-gray-600">
-              {moment(order.invoice_date).format('MMM DD, YYYY')}
-            </div>
-
-            {/* Payble Amount */}
-            <div className="col-span-1 text-gray-600">
-              {order.total_amount_payable}
-            </div>
-
-            {/* Payment Status */}
-            <div className="col-span-1">
-              <span
-                className="inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize text-white"
-                style={{
-                  backgroundColor: handleGetColorForStatus(
-                    order.payment_status,
-                  ),
-                }}
+        {/* Table Body */}
+        {filteredOrders && filteredOrders.length > 0 ? (
+          <div className="border-l border-r border-b border-gray-200">
+            {filteredOrders.map((order, index) => (
+              <div
+                key={order._id}
+                className="grid grid-cols-12 p-3 text-sm hover:bg-blue-50 transition-all gap-3 items-center cursor-pointer border-b border-gray-100 group"
+                onClick={() => handleRedirect(order._id)}
               >
-                {order.payment_status}
-              </span>
-            </div>
+                {/* Serial Number */}
+                <div className="col-span-1 text-gray-600 font-medium">
+                  {index + 1}
+                </div>
 
-            {/* Total Amount */}
-            <div className="col-span-2 font-medium text-black">
-              ₹{order.total_amount}
-            </div>
+                {/* Invoice & Date */}
+                <div className="col-span-3">
+                  <div className="font-semibold text-black truncate">
+                    {order.invoice_no}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {moment(order.invoice_date).format('DD MMM YYYY')}
+                  </div>
+                </div>
 
-            {/* Due Date */}
-            <div className="col-span-2 text-gray-600">
-              {moment(order.payment_due_date).format('MMM DD, YYYY')}
-            </div>
+                {/* Amount */}
+                <div className="col-span-2">
+                  <div className="font-bold text-black">
+                    ₹{order.total_amount}
+                  </div>
+                  {order.total_amount_payable !== order.total_amount && (
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      Payable: ₹{order.total_amount_payable}
+                    </div>
+                  )}
+                </div>
 
-            {/* Options */}
-            <div className="col-span-2 text-center flex justify-between items-center">
-              <div className="flex items-center gap-1">
-                {/* Download Button */}
-                <Tooltip content="Download Invoice" position="top">
-                  <button
-                    onClick={(event) => handleDownload(event, order)}
-                    className="p-1.5 text-primary hover:bg-blue-100 rounded-md transition-colors"
-                  >
-                    <MdDownload size={17} />
-                  </button>
-                </Tooltip>
+                {/* Payment Status */}
+                <div className="col-span-2">
+                  <StatusBadge status={order.payment_status} />
+                </div>
 
-                {/* Record Payment Button */}
-                {order.payment_status !== 'paid' && (
-                  <Tooltip content="Record Payment" position="top">
-                    <button
-                      onClick={(event) => handleRecordPayment(event, order)}
-                      className="p-1.5 text-success hover:bg-green-100 rounded-md transition-colors"
-                    >
-                      <MdPayment size={17} />
-                    </button>
-                  </Tooltip>
-                )}
+                {/* Due Date */}
+                <div className="col-span-2 text-gray-600">
+                  {moment(order.payment_due_date).format('DD MMM YYYY')}
+                </div>
 
-                {/* Delete Button */}
-                <Tooltip content="Delete Purchase Order" position="top">
-                  <button
-                    onClick={(event) => handleDeleteClick(event, order)}
-                    className="p-1.5 text-red-600 hover:bg-red-100 rounded-md transition-colors"
-                  >
-                    <MdDelete size={17} />
-                  </button>
-                </Tooltip>
+                {/* Actions */}
+                <div className="col-span-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {/* Download Button */}
+                    <Tooltip content="Download Invoice" position="top">
+                      <button
+                        onClick={(event) => handleDownload(event, order)}
+                        className="p-2 text-primary hover:bg-blue-100 rounded-md transition-colors"
+                      >
+                        <MdDownload size={16} />
+                      </button>
+                    </Tooltip>
+
+                    {/* Record Payment Button */}
+                    {order.payment_status !== 'paid' && (
+                      <Tooltip content="Record Payment" position="top">
+                        <button
+                          onClick={(event) => handleRecordPayment(event, order)}
+                          className="p-2 text-success hover:bg-green-100 rounded-md transition-colors"
+                        >
+                          <MdPayment size={16} />
+                        </button>
+                      </Tooltip>
+                    )}
+
+                    {/* Delete Button */}
+                    <Tooltip content="Delete Purchase Order" position="top">
+                      <button
+                        onClick={(event) => handleDeleteClick(event, order)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                      >
+                        <MdDelete size={16} />
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <IoIosArrowForward
+                    size={18}
+                    className="text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                </div>
               </div>
-              <div>
-                <IoIosArrowForward size={18} color="var(--color-primary)" />
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <p className="text-sm">
+              No {filterStatus !== 'all' ? filterStatus : ''} orders found
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
