@@ -61,6 +61,20 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
 
   const currentRowValid = isRowComplete(form);
 
+  // Initialize selected medicine on mount for edit mode
+  useEffect(() => {
+    if (isReadOnly && medicine.med_name && !selectedMedicine) {
+      setSelectedMedicine({
+        value: medicine.med_name,
+        label: medicine.med_name,
+        medicine: {
+          _id: medicine.med_name,
+          name: medicine.med_name,
+        },
+      });
+    }
+  }, []);
+
   // Search medicines with debounce
   const searchMedicines = useCallback((searchTerm: string) => {
     const debouncedSearch = debounce(async (term: string) => {
@@ -117,9 +131,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
         const batchOpts: BatchSelectOption[] = selectedMedicine.batches.map(
           (batch) => ({
             value: batch._id,
-            label: `${batch.batch} - Exp: ${batch.expiry_mm}/${
-              batch.expiry_yy
-            }${batch.pack ? ` - ${batch.pack}` : ''}`,
+            label: batch.batch,
             batch: batch,
           }),
         );
@@ -297,8 +309,9 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
           options={medicineOptions}
           isLoading={medicineLoading}
           placeholder="Search Product*"
-          isClearable
-          isSearchable
+          isClearable={!isReadOnly}
+          isSearchable={!isReadOnly}
+          isDisabled={isReadOnly}
           formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
           noOptionsMessage={({ inputValue }) =>
             inputValue.length < 2
@@ -311,7 +324,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
               border: 'none',
               boxShadow: 'none',
               minHeight: '36px',
-              backgroundColor: 'transparent',
+              backgroundColor: isReadOnly ? '#f3f4f6' : 'transparent',
             }),
             placeholder: (base) => ({
               ...base,
@@ -357,7 +370,7 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
             value={selectedBatch}
             onChange={handleBatchSelect}
             options={batchOptions}
-            placeholder="Select Batch*"
+            placeholder="Batch"
             isClearable
             isSearchable
             noOptionsMessage={() => 'No batches available'}
@@ -372,6 +385,25 @@ const AddMedicineRow: React.FC<AddMedicineRowProps> = ({
               placeholder: (base) => ({
                 ...base,
                 color: '#9ca3af',
+                fontSize: '0.875rem',
+                fontWeight: '400',
+              }),
+              singleValue: (base) => ({
+                ...base,
+                color: '#000000',
+                fontSize: '0.875rem',
+                fontWeight: '400',
+              }),
+              input: (base) => ({
+                ...base,
+                color: '#000000',
+                fontSize: '0.875rem',
+              }),
+              option: (base) => ({
+                ...base,
+                fontSize: '0.875rem',
+                fontWeight: '400',
+                color: '#000000',
               }),
             }}
             className={isReadOnly ? 'pointer-events-none' : ''}

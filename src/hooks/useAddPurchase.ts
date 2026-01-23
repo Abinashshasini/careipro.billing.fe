@@ -401,6 +401,7 @@ const useAddPurchase = (
       total_item_count: totals.totalItems,
       medicines: transformedMedicines,
     };
+    console.log('purchaseData', purchaseData);
 
     if (purchaseOrderId) {
       const newMedicines = transformedMedicines.slice(originalMedicinesCount);
