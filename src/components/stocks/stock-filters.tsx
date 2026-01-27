@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
-import { FiFilter } from 'react-icons/fi';
 import Select from 'react-select';
 
 interface FilterOption {
